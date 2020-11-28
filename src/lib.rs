@@ -5,6 +5,7 @@ use embedded_websocket as ws;
 use embedded_websocket::{WebSocketOptions, WebSocketSendMessageType, WebSocketReceiveMessageType, WebSocketCloseStatusCode};
 use embedded_nal::{TcpClient, SocketAddrV4, Ipv4Addr, IpAddr};
 use rand::rngs::ThreadRng;
+use crate::PolkaProviderError::TcpSocket;
 
 
 #[cfg(test)]
@@ -23,6 +24,7 @@ pub enum PolkaProviderError {
 	TcpSocket(TcpError),
 	Embedded(embedded_nal::nb::Error<TcpError>),
 	Utf8Error,
+	Unknown
 }
 
 impl From<ws::Error> for PolkaProviderError {
@@ -49,20 +51,36 @@ impl From<core::str::Utf8Error> for PolkaProviderError {
 	}
 }
 
-struct PolkaProvider<'a, S> {
+impl From<embedded_nal::nb::Error<PolkaProviderError>> for PolkaProviderError {
+	fn from(err: embedded_nal::nb::Error<PolkaProviderError>) -> PolkaProviderError {
+		if let embedded_nal::nb::Error::Other(e) = err {
+			e
+		} else {
+			PolkaProviderError::Unknown
+		}
+	}
+}
+
+pub struct PolkaProvider<'a, S> {
 	socket: S,
 	ws: ws::WebSocketClient<ThreadRng>,
 	in_buf: [u8; 4000],
 	out_buf: [u8; 4000],
-	tcp: &'a dyn TcpClient<TcpSocket = S, Error = TcpError>,
+	tcp: &'a dyn TcpClient<TcpSocket=S, Error=PolkaProviderError>,
 }
 
 impl<'a, S> PolkaProvider<'a, S>
 {
-	pub fn init(tcp: &'a dyn TcpClient<TcpSocket = S, Error = TcpError>) -> PolkaProvider<'a, S> {
+	pub fn new(tcp: &dyn TcpClient<TcpSocket=S, Error=PolkaProviderError>) -> PolkaProvider<S> {
+		let mut sock:S;
+		if let Ok(s) = tcp.socket() {
+			sock = s
+		} else {
+			panic!("Unable to create socket");
+		}
 		PolkaProvider {
 			tcp,
-			socket: tcp.socket().unwrap(),
+			socket: sock,
 			ws: ws::WebSocketClient::new_client(rand::thread_rng()),
 			in_buf: [0_u8;  4000],
 			out_buf: [0_u8;  4000],
