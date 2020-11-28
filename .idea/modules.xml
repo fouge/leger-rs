@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/micro_wallet.iml" filepath="$PROJECT_DIR$/.idea/micro_wallet.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/leger-rs.iml" filepath="$PROJECT_DIR$/.idea/leger-rs.iml" />
     </modules>
   </component>
 </project>

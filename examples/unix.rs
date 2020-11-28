@@ -6,7 +6,7 @@
 
 use embedded_nal::{TcpClient, SocketAddr, nb};
 use std::net::TcpStream;
-use embedded_dot::{PolkaProviderError, PolkaProvider};
+use leger::{PolkaProviderError, PolkaProvider};
 use std::mem::MaybeUninit;
 use std::ops::Deref;
 use no_std_net::ToSocketAddrs;
@@ -20,14 +20,14 @@ impl core::fmt::Debug for UnixTcpStack {
 		write!(f, "Hi")
 	}
 }
-
-impl ToSocketAddrs for SocketAddr {
-	type Iter = ();
-
-	fn to_socket_addrs(&self) -> Result<Self::Iter, ToSocketAddrError> {
-		unimplemented!()
-	}
-}
+//
+// impl ToSocketAddrs for SocketAddr {
+// 	type Iter = ();
+//
+// 	fn to_socket_addrs(&self) -> Result<Self::Iter, ToSocketAddrError> {
+// 		unimplemented!()
+// 	}
+// }
 
 impl TcpClient for UnixTcpStack {
 	type TcpSocket = TcpStream;
@@ -45,8 +45,9 @@ impl TcpClient for UnixTcpStack {
 	}
 
 	fn connect(&self, socket: &mut Self::TcpSocket, remote: SocketAddr) -> nb::Result<(), Self::Error> {
-		let mut socket = TcpStream::connect(remote).unwrap();
-		Ok(())
+		unimplemented!()
+		// let mut socket = TcpStream::connect(remote).unwrap();
+		// Ok(())
 	}
 
 	fn is_connected(&self, socket: &Self::TcpSocket) -> Result<bool, Self::Error> {
