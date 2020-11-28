@@ -1,0 +1,17 @@
+[package]
+name = "embedded-dot"
+version = "0.1.0"
+authors = ["Cyril Fougeray <cyril.fougeray@gmail.com>"]
+edition = "2018"
+
+[lib]
+name = "embedded_dot"
+crate-type = ["rlib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand = "0.7.3"
+embedded-nal = { version="0.1.0", path = "../embedded-nal/" }
+embedded-websocket = "0.3.2"
+no-std-net = "0.4.0"
