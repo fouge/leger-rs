@@ -13,6 +13,7 @@ mod tests;
 #[derive(Debug)]
 pub enum TcpError {
 	CountNotMatching,
+	CannotCreate,
 	CannotClose,
 	InvalidAddress,
 	Unknown,
@@ -23,6 +24,7 @@ pub enum PolkaProviderError {
 	WebSocket(ws::Error),
 	TcpSocket(TcpError),
 	Embedded(embedded_nal::nb::Error<TcpError>),
+	ErrorClosing,
 	Utf8Error,
 	Unknown
 }
@@ -64,34 +66,47 @@ impl From<embedded_nal::nb::Error<PolkaProviderError>> for PolkaProviderError {
 pub struct PolkaProvider<'a, S> {
 	socket: S,
 	ws: ws::WebSocketClient<ThreadRng>,
-	in_buf: [u8; 4000],
-	out_buf: [u8; 4000],
+	in_buf: [u8; 4096],
+	out_buf: [u8; 4096],
 	tcp: &'a dyn TcpClient<TcpSocket=S, Error=PolkaProviderError>,
 }
 
 impl<'a, S> PolkaProvider<'a, S>
 {
-	pub fn new(tcp: &dyn TcpClient<TcpSocket=S, Error=PolkaProviderError>) -> PolkaProvider<S> {
+	/// Instantiates the provider and init TCP socket, websocket lib and static buffers.
+	///
+	/// # Errors
+	/// * `TcpError::CannotCreate` if the TCP socket cannot be created
+	pub fn new(tcp: &dyn TcpClient<TcpSocket=S, Error=PolkaProviderError>) -> Result<PolkaProvider<S>, PolkaProviderError> {
 		let sock:S;
 		if let Ok(s) = tcp.socket() {
 			sock = s
 		} else {
-			panic!("Unable to create socket");
+			return Err(PolkaProviderError::TcpSocket(TcpError::CannotCreate))
 		}
 
-		PolkaProvider {
+		Ok(PolkaProvider {
 			tcp,
 			socket: sock,
 			ws: ws::WebSocketClient::new_client(rand::thread_rng()),
-			in_buf: [0_u8;  4000],
-			out_buf: [0_u8;  4000],
-		}
+			in_buf: [0_u8;  4096],
+			out_buf: [0_u8;  4096],
+		})
 	}
 
+	/// Connects to the node at the given address. Initiates the websocket handshake.
+	///
+	/// # Errors
+	/// * `embedded_websocket::Error`: if any error with websocket
+	/// * `TcpError::InvalidAddress`: address cannot be parsed
+	/// * `TcpError::CountNotMatching`: sent bytes count doesn't equal the initial packet count
 	pub fn connect(&mut self, address: &str) -> Result<(), PolkaProviderError> {
 		// TCP connection first
-		let addr = embedded_nal::SocketAddr::from_str(address).expect("Unable to parse address");
-		self.tcp.connect(&mut self.socket, addr)?;
+		if let Ok(addr) = embedded_nal::SocketAddr::from_str(address) {
+			self.tcp.connect(&mut self.socket, addr)?;
+		} else {
+			return Err(PolkaProviderError::TcpSocket(TcpError::InvalidAddress))
+		}
 
 		// initiate a websocket opening handshake
 		let websocket_options = WebSocketOptions {
@@ -116,6 +131,10 @@ impl<'a, S> PolkaProvider<'a, S>
 		Ok(())
 	}
 
+	/// Disconnects from the node by initiating a close handshake.
+	/// The TCP socket will be closed when the `PolkaProvider` instance is dropped.
+	/// # Errors
+	/// * `ErrorClosing` if the WebSocket has not been closed properly.
 	pub fn disconnect(&mut self) -> Result<(), PolkaProviderError> {
 		// initiate a close handshake
 		let send_size = self.ws.close(WebSocketCloseStatusCode::NormalClosure, None, &mut self.out_buf)?;
@@ -131,14 +150,14 @@ impl<'a, S> PolkaProvider<'a, S>
 				Ok(())
 			}
 			_ => {
-				Err(PolkaProviderError::TcpSocket(TcpError::CannotClose))
+				Err(PolkaProviderError::ErrorClosing)
 			}
 		}
 	}
 
-	// Send with response
-	// blocking wait
-	pub fn send(&mut self, message: &str) -> Result<&str, PolkaProviderError> {
+	/// Send request with response (blocking wait)
+	///
+	fn request(&mut self, message: &str) -> Result<&str, PolkaProviderError> {
 		// create WS frame with message argument as payload
 		let len = self.ws.write(
 			WebSocketSendMessageType::Text,
