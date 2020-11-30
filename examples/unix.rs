@@ -5,29 +5,14 @@
 // with TcpStream (check out `socket` function).
 
 use embedded_nal::{TcpClient, SocketAddr, nb};
-use std::net::TcpStream;
-use leger::{PolkaProviderError, PolkaProvider};
-use std::mem::MaybeUninit;
-use std::ops::Deref;
-use no_std_net::ToSocketAddrs;
-
+use leger::{PolkaProviderError, PolkaProvider, TcpError};
+use std::net::{TcpStream, Shutdown};
+use std::str::FromStr;
+use std::io::{Write, Read};
+use std::time::Duration;
 
 pub struct UnixTcpStack {
 }
-
-impl core::fmt::Debug for UnixTcpStack {
-	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-		write!(f, "Hi")
-	}
-}
-//
-// impl ToSocketAddrs for SocketAddr {
-// 	type Iter = ();
-//
-// 	fn to_socket_addrs(&self) -> Result<Self::Iter, ToSocketAddrError> {
-// 		unimplemented!()
-// 	}
-// }
 
 impl TcpClient for UnixTcpStack {
 	type TcpSocket = TcpStream;
@@ -40,39 +25,62 @@ impl TcpClient for UnixTcpStack {
 	fn socket(&self) -> Result<Self::TcpSocket, Self::Error> {
 		let addrs = [ std::net::SocketAddr::from(([127, 0, 0, 1], 9944)) ];
 
-		let mut socket = TcpStream::connect(&addrs[..]).unwrap();
+		let socket = TcpStream::connect(&addrs[..]).unwrap();
 		Ok(socket)
 	}
 
 	fn connect(&self, socket: &mut Self::TcpSocket, remote: SocketAddr) -> nb::Result<(), Self::Error> {
-		unimplemented!()
-		// let mut socket = TcpStream::connect(remote).unwrap();
-		// Ok(())
+		let addrs = [ std::net::SocketAddr::from_str(remote.to_string().as_str()).unwrap() ];
+
+		let mut socket_cpy = TcpStream::connect(&addrs[..]).unwrap();
+		std::mem::swap(socket, &mut socket_cpy);
+
+		socket.set_read_timeout(Some(Duration::new(2, 0))).expect("set_read_timeout call failed");
+		Ok(())
 	}
 
-	fn is_connected(&self, socket: &Self::TcpSocket) -> Result<bool, Self::Error> {
-		unimplemented!()
+	fn is_connected(&self, _socket: &Self::TcpSocket) -> Result<bool, Self::Error> {
+		// It's not possible to use a disconnected TcpStream as we need to connect to create it
+		Ok(true)
 	}
 
 	fn send(&self, socket: &mut Self::TcpSocket, buffer: &[u8]) -> nb::Result<usize, Self::Error> {
-		unimplemented!()
+		if let Ok(written) = socket.write(buffer) {
+			Ok(written)
+		} else {
+			Err(nb::Error::WouldBlock)
+		}
 	}
 
 	fn receive(&self, socket: &mut Self::TcpSocket, buffer: &mut [u8]) -> nb::Result<usize, Self::Error> {
-		unimplemented!()
+		if let Ok(read) = socket.read(buffer) {
+			Ok(read)
+		} else {
+			Err(nb::Error::WouldBlock)
+		}
 	}
 
 	fn close(&self, socket: &Self::TcpSocket) -> Result<(), Self::Error> {
-		unimplemented!()
+		// It is advised to drop the socket reference to make sure it is closed
+		// [The connection will be closed when the value is dropped](https://doc.rust-lang.org/beta/std/net/struct.TcpStream.html)
+		if let Ok(_) = socket.shutdown(Shutdown::Both) {
+			Ok(())
+		} else {
+			Err(PolkaProviderError::TcpSocket(TcpError::CannotClose))
+		}
 	}
 }
 
 
 fn main() -> Result<(), PolkaProviderError> {
-	let mut tcp = UnixTcpStack{	};
+	let tcp = UnixTcpStack{	};
 	let mut pp:PolkaProvider<TcpStream> = PolkaProvider::new(&tcp);
 
-	pp.connect("hgell");
+	pp.connect("127.0.0.1:9944")?;
+	println!("✅ Connection to remote done");
 
+	println!("Asking block hash:");
+	let resp = pp.send("{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"chain_getBlockHash\",\"params\":[0]}")?;
+	println!("Block hash: {}", resp);
 	Ok(())
 }

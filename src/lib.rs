@@ -3,10 +3,9 @@
 
 use embedded_websocket as ws;
 use embedded_websocket::{WebSocketOptions, WebSocketSendMessageType, WebSocketReceiveMessageType, WebSocketCloseStatusCode};
-use embedded_nal::{TcpClient, SocketAddrV4, Ipv4Addr, IpAddr};
+use embedded_nal::{TcpClient};
 use rand::rngs::ThreadRng;
-use crate::PolkaProviderError::TcpSocket;
-
+use core::str::FromStr;
 
 #[cfg(test)]
 mod tests;
@@ -15,6 +14,7 @@ mod tests;
 pub enum TcpError {
 	CountNotMatching,
 	CannotClose,
+	InvalidAddress,
 	Unknown,
 }
 
@@ -46,7 +46,7 @@ impl From<embedded_nal::nb::Error<TcpError>> for PolkaProviderError {
 }
 
 impl From<core::str::Utf8Error> for PolkaProviderError {
-	fn from(err: core::str::Utf8Error) -> PolkaProviderError {
+	fn from(_: core::str::Utf8Error) -> PolkaProviderError {
 		PolkaProviderError::Utf8Error
 	}
 }
@@ -72,12 +72,13 @@ pub struct PolkaProvider<'a, S> {
 impl<'a, S> PolkaProvider<'a, S>
 {
 	pub fn new(tcp: &dyn TcpClient<TcpSocket=S, Error=PolkaProviderError>) -> PolkaProvider<S> {
-		let mut sock:S;
+		let sock:S;
 		if let Ok(s) = tcp.socket() {
 			sock = s
 		} else {
 			panic!("Unable to create socket");
 		}
+
 		PolkaProvider {
 			tcp,
 			socket: sock,
@@ -88,11 +89,8 @@ impl<'a, S> PolkaProvider<'a, S>
 	}
 
 	pub fn connect(&mut self, address: &str) -> Result<(), PolkaProviderError> {
-		// TODO parse address
-		// let's not parse domains for the moment as we are still not able to find the
-		// corresponding IP (DNS client)
-		let addr = embedded_nal::SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9944);
-
+		// TCP connection first
+		let addr = embedded_nal::SocketAddr::from_str(address).expect("Unable to parse address");
 		self.tcp.connect(&mut self.socket, addr)?;
 
 		// initiate a websocket opening handshake
@@ -105,10 +103,11 @@ impl<'a, S> PolkaProvider<'a, S>
 		};
 		let (len, web_socket_key) = self.ws.client_connect(&websocket_options, &mut self.out_buf)?;
 
-		let _ = self.tcp.send(&mut self.socket, &self.out_buf[..len])?;
-		// if written != len {
-		// 	PolkaProviderError::TcpSocket(TcpError::CountNotMatching)
-		// }
+		// send websocket frame using tcp socket
+		let written = self.tcp.send(&mut self.socket, &self.out_buf[..len])?;
+		if written != len {
+			return Err(PolkaProviderError::TcpSocket(TcpError::CountNotMatching))
+		}
 
 		// read the response from the server and check it to complete the opening handshake
 		let received_size = self.tcp.receive(&mut self.socket, &mut self.in_buf)?;
@@ -127,6 +126,7 @@ impl<'a, S> PolkaProvider<'a, S>
 		let ws_result = self.ws.read(&self.in_buf[..received_size], &mut self.out_buf)?;
 		match ws_result.message_type {
 			WebSocketReceiveMessageType::CloseCompleted => {
+				// we can close the TCP socket as well
 				self.tcp.close(&self.socket)?;
 				Ok(())
 			}
@@ -134,28 +134,47 @@ impl<'a, S> PolkaProvider<'a, S>
 				Err(PolkaProviderError::TcpSocket(TcpError::CannotClose))
 			}
 		}
-
-
-
 	}
 
+	// Send with response
+	// blocking wait
 	pub fn send(&mut self, message: &str) -> Result<&str, PolkaProviderError> {
-		let send_size = self.ws.write(
+		// create WS frame with message argument as payload
+		let len = self.ws.write(
 			WebSocketSendMessageType::Text,
 			true,
 			message.as_ref(),
 			&mut self.out_buf,
 		)?;
 
-		self.tcp.send(&mut self.socket, &mut self.out_buf)?;
+		// send websocket frame
+		let written = self.tcp.send(&mut self.socket, &mut self.out_buf[..len])?;
+		if len != written {
+			return Err(PolkaProviderError::TcpSocket(TcpError::CountNotMatching))
+		}
 
-		// read the response from the server (we expect the server to simply echo the same message back)
+		// read the response from the server and parse websocket message
 		let received_size = self.tcp.receive(&mut self.socket, &mut self.in_buf)?;
 		let ws_result = self.ws.read(&self.in_buf[..received_size], &mut self.out_buf)?;
 		match ws_result.message_type {
 			WebSocketReceiveMessageType::Text => {
 				let res = core::str::from_utf8(&self.out_buf[..ws_result.len_to])?;
 				Ok(res)
+			}
+			WebSocketReceiveMessageType::CloseMustReply => {
+			// Signals that the other party has initiated the close handshake. If you receive this
+			// message you should respond with a `WebSocketSendMessageType::CloseReply` with the
+			// same payload as close message
+			// TODO not tested
+				let len = self.ws.write(
+					WebSocketSendMessageType::CloseReply,
+					true,
+					&self.out_buf[..ws_result.len_to], // take payload from received message
+					&mut self.in_buf,
+				)?;
+				self.tcp.send(&mut self.socket, &mut self.in_buf[..len])?;
+
+				Err(PolkaProviderError::WebSocket(ws::Error::Unknown))
 			}
 			_ => {
 				Err(PolkaProviderError::WebSocket(ws::Error::Unknown))
