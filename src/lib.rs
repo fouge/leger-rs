@@ -6,6 +6,8 @@ use embedded_websocket::{WebSocketOptions, WebSocketSendMessageType, WebSocketRe
 use embedded_nal::{TcpClient};
 use rand::rngs::ThreadRng;
 use core::str::FromStr;
+use serde::{Serialize, Deserialize};
+use heapless::{String, consts::*};
 
 #[cfg(test)]
 mod tests;
@@ -20,10 +22,17 @@ pub enum TcpError {
 }
 
 #[derive(Debug)]
+pub enum JsonError {
+	ErrorParsing,
+}
+
+#[derive(Debug)]
 pub enum PolkaProviderError {
 	WebSocket(ws::Error),
 	TcpSocket(TcpError),
 	Embedded(embedded_nal::nb::Error<TcpError>),
+	Json(JsonError),
+	ResponseDoesNotMatch,
 	ErrorClosing,
 	Utf8Error,
 	Unknown
@@ -44,6 +53,12 @@ impl From<TcpError> for PolkaProviderError {
 impl From<embedded_nal::nb::Error<TcpError>> for PolkaProviderError {
 	fn from(err: embedded_nal::nb::Error<TcpError>) -> PolkaProviderError {
 		PolkaProviderError::Embedded(err)
+	}
+}
+
+impl From<JsonError> for PolkaProviderError {
+	fn from(err: JsonError) -> PolkaProviderError {
+		PolkaProviderError::Json(err)
 	}
 }
 
@@ -69,6 +84,19 @@ pub struct PolkaProvider<'a, S> {
 	in_buf: [u8; 4096],
 	out_buf: [u8; 4096],
 	tcp: &'a dyn TcpClient<TcpSocket=S, Error=PolkaProviderError>,
+	cmd_id: usize,
+}
+
+#[derive(Serialize, Deserialize)]
+struct JsonRpc<'a> {
+	id: usize,
+	jsonrpc: &'a str,
+	#[serde(skip_serializing_if = "Option::is_none")]
+	method: Option<&'a str>,
+	#[serde(skip_serializing_if = "Option::is_none")]
+	result: Option<&'a str>,
+	#[serde(skip_serializing_if = "Option::is_none")]
+	params: Option<[usize; 1]>,
 }
 
 impl<'a, S> PolkaProvider<'a, S>
@@ -91,6 +119,7 @@ impl<'a, S> PolkaProvider<'a, S>
 			ws: ws::WebSocketClient::new_client(rand::thread_rng()),
 			in_buf: [0_u8;  4096],
 			out_buf: [0_u8;  4096],
+			cmd_id: 1_usize,
 		})
 	}
 
@@ -156,7 +185,6 @@ impl<'a, S> PolkaProvider<'a, S>
 	}
 
 	/// Send request with response (blocking wait)
-	///
 	fn request(&mut self, message: &str) -> Result<&str, PolkaProviderError> {
 		// create WS frame with message argument as payload
 		let len = self.ws.write(
@@ -199,5 +227,64 @@ impl<'a, S> PolkaProvider<'a, S>
 				Err(PolkaProviderError::WebSocket(ws::Error::Unknown))
 			}
 		}
+	}
+
+	/// Call rpc method with optional params
+	/// Field `result` is returned from the response if it can be parsed as a string
+	/// Otherwise, the whole JSON response is returned.
+	/// # Errors
+	/// * `ResponseDoesNotMatch`: JSON returned has been parsed but returned `id` is not the same as
+	/// the sent `id`
+	/// * any other error than can happen with `request()`
+	pub fn rpc_method(&mut self, method: Option<&str>, params: Option<[usize; 1]>) -> Result<&str, PolkaProviderError> {
+		// construct request from method and params
+		let json_req = JsonRpc{
+			id: self.cmd_id,
+			jsonrpc:"2.0",
+			method: method,
+			params: params,
+			result: None
+		};
+		let req_str: String<U128> = serde_json_core::to_string(&json_req).unwrap();
+		self.cmd_id = self.cmd_id + 1_usize;
+		let response = self.request(req_str.as_str());
+
+		// Parse response if it contains a result string
+		// returns the whole response if JSON cannot be parsed
+		match response {
+			Ok(res) => {
+				if let Ok(json_res) = serde_json_core::from_str::<JsonRpc>(res) {
+					if json_res.id == json_req.id {
+						Ok(json_res.result.unwrap_or(""))
+					} else {
+						Err(PolkaProviderError::ResponseDoesNotMatch)
+					}
+				} else {
+					// At the moment, let's return the whole response struct
+					// to better analyze the result
+					Ok(res)
+				}
+			}
+			Err(e) => {
+				Err(e)
+			}
+		}
+	}
+
+	/// Get block genesis hash
+	pub fn genesis_hash(&mut self) -> Result<&str, PolkaProviderError> {
+		self.rpc_method(Some("chain_getBlockHash"), Some([0_usize]))
+	}
+
+	pub fn system_version(&mut self) -> Result<&str, PolkaProviderError> {
+		self.rpc_method(Some("system_version"), None)
+	}
+
+	pub fn chain_info(&mut self) -> Result<&str, PolkaProviderError> {
+		self.rpc_method(Some("system_name"), None)
+	}
+
+	pub fn runtime_version(&mut self) -> Result<&str, PolkaProviderError> {
+		self.rpc_method(Some("state_getRuntimeVersion"), None)
 	}
 }

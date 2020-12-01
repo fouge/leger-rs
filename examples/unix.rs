@@ -74,13 +74,21 @@ impl TcpClient for UnixTcpStack {
 
 fn main() -> Result<(), PolkaProviderError> {
 	let tcp = UnixTcpStack{	};
-	let mut pp:PolkaProvider<TcpStream> = PolkaProvider::new(&tcp);
+	let mut pp:PolkaProvider<TcpStream> = PolkaProvider::new(&tcp)?;
 
 	pp.connect("127.0.0.1:9944")?;
 	println!("✅ Connection to remote done");
 
-	println!("Asking block hash:");
-	let resp = pp.send("{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"chain_getBlockHash\",\"params\":[0]}")?;
-	println!("Block hash: {}", resp);
+	let name = pp.chain_info()?;
+	println!("🧪 Name: {}", name);
+
+	let genesis = pp.system_version()?;
+	println!("✌️ Version {}", genesis);
+
+	let resp = pp.genesis_hash()?;
+	println!("🐥 Genesis block hash {}", resp);
+
+	println!("🐥 Runtime version {}", pp.runtime_version()?);
+
 	Ok(())
 }
