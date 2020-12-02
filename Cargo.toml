@@ -18,3 +18,5 @@ no-std-net = "0.4.0"
 serde = { version = "1.0.117", default-features = false, features = ["derive"] } # no-std
 serde-json-core = "0.1.0"
 heapless = "0.5.6"
+ed25519-compact = "0.1.9"
+hex = { version = "0.4.2",  default-features = false } # no-std
