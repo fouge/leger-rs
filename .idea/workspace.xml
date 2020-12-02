@@ -32,9 +32,9 @@
   <component name="ChangeListManager">
     <list default="true" id="50193056-bf4f-4000-9603-88ad6df537f8" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/unix.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/unix.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/tests.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/tests.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/rpc/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/rpc/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,6 +43,13 @@
   </component>
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Rust File" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -67,12 +74,14 @@
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
   </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/account" />
+      <recent name="$PROJECT_DIR$/src/tests" />
+      <recent name="$PROJECT_DIR$/src/extrinsic" />
+    </key>
+  </component>
   <component name="RunManager" selected="Cargo.Run unix">
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="Run unix" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="run --package leger-rs --example unix" />
@@ -97,9 +106,40 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Test account::tests::test_new_account" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package leger-rs --lib account::tests::test_new_account -- --exact" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test account::tests::test_public_key_generation" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package leger-rs --lib account::tests::test_public_key_generation -- --exact" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Cargo.Run unix" />
+        <item itemvalue="Cargo.Test account::tests::test_new_account" />
+        <item itemvalue="Cargo.Test account::tests::test_public_key_generation" />
       </list>
     </recent_temporary>
   </component>
@@ -116,8 +156,96 @@
       <option name="presentableId" value="Default" />
       <updated>1606585107795</updated>
       <workItem from="1606585109872" duration="341000" />
-      <workItem from="1606723625929" duration="12435000" />
+      <workItem from="1606723625929" duration="21101000" />
+      <workItem from="1606806313353" duration="5431000" />
+      <workItem from="1606811983271" duration="13858000" />
+      <workItem from="1606896336204" duration="8005000" />
     </task>
+    <task id="LOCAL-00001" summary="Example of using websocket with Unix TcpStream to fetch block hash.">
+      <created>1606736447521</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1606736447521</updated>
+    </task>
+    <task id="LOCAL-00002" summary="For later, an effective test would be to launch a TCP server to test that part.">
+      <created>1606736479203</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1606736479203</updated>
+    </task>
+    <task id="LOCAL-00003" summary="+workspace.xml">
+      <created>1606736488950</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1606736488950</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Added gitignore">
+      <created>1606736552726</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1606736552726</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Some doc and better error handling">
+      <created>1606758850485</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1606758850485</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Ignoring Cargo.lock">
+      <created>1606758876894</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1606758876894</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Deleted file">
+      <created>1606758887377</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1606758887377</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Better implementation of rpc calls. Params type is constrained at the moment, result parsed if string only. More to come.&#10;+ examples with Unix Tcp stack">
+      <created>1606817369518</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1606817369518</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Better implementation of rpc calls. Params type is constrained at the moment, result parsed if string only. More to come.&#10;+ examples with Unix Tcp stack">
+      <created>1606817379765</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1606817379765</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Added Account: creation with test. Signing a payload has not been tested yet.">
+      <created>1606898190385</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1606898190385</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Refactored, exposes only Provider.">
+      <created>1606902337690</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1606902337690</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Error if parsing fails">
+      <created>1606902356585</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1606902356585</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -133,12 +261,31 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Example of using websocket with Unix TcpStream to fetch block hash." />
+    <MESSAGE value="For later, an effective test would be to launch a TCP server to test that part." />
+    <MESSAGE value="+workspace.xml" />
+    <MESSAGE value="Added gitignore" />
+    <MESSAGE value="Some doc and better error handling" />
+    <MESSAGE value="Ignoring Cargo.lock" />
+    <MESSAGE value="Deleted file" />
+    <MESSAGE value="Better implementation of rpc calls. Params type is constrained at the moment, result parsed if string only. More to come.&#10;+ examples with Unix Tcp stack" />
+    <MESSAGE value="Added Account: creation with test. Signing a payload has not been tested yet." />
+    <MESSAGE value="Refactored, exposes only Provider." />
+    <MESSAGE value="Error if parsing fails" />
+    <option name="LAST_COMMIT_MESSAGE" value="Error if parsing fails" />
   </component>
   <component name="WindowStateProjectService">
     <state x="738" y="861" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1606731213488">
       <screen x="0" y="497" width="2560" height="1413" />
     </state>
     <state x="738" y="861" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606731213488" />
+    <state x="337" y="1005" width="596" height="403" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1606834084660">
+      <screen x="0" y="497" width="2560" height="1413" />
+    </state>
+    <state x="337" y="1005" width="596" height="403" key="#com.intellij.fileTypes.FileTypeChooser/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606834084660" />
     <state x="1161" y="939" width="228" height="535" key="#xdebugger.XInspectDialog" timestamp="1606731284485">
       <screen x="0" y="497" width="2560" height="1413" />
     </state>
@@ -147,42 +294,50 @@
       <screen x="0" y="497" width="2560" height="1413" />
     </state>
     <state x="1038" y="948" key="#xdebugger.evaluate/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606731298020" />
-    <state width="2514" height="285" key="GridCell.Tab.0.bottom" timestamp="1606736328458">
+    <state width="2514" height="309" key="GridCell.Tab.0.bottom" timestamp="1606902519332">
       <screen x="0" y="497" width="2560" height="1413" />
     </state>
-    <state width="2514" height="285" key="GridCell.Tab.0.bottom/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606736328458" />
-    <state width="2514" height="285" key="GridCell.Tab.0.center" timestamp="1606736328458">
+    <state width="2514" height="309" key="GridCell.Tab.0.bottom/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606902519332" />
+    <state width="2514" height="309" key="GridCell.Tab.0.center" timestamp="1606902519332">
       <screen x="0" y="497" width="2560" height="1413" />
     </state>
-    <state width="2514" height="285" key="GridCell.Tab.0.center/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606736328458" />
-    <state width="2514" height="285" key="GridCell.Tab.0.left" timestamp="1606736328458">
+    <state width="2514" height="309" key="GridCell.Tab.0.center/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606902519332" />
+    <state width="2514" height="309" key="GridCell.Tab.0.left" timestamp="1606902519332">
       <screen x="0" y="497" width="2560" height="1413" />
     </state>
-    <state width="2514" height="285" key="GridCell.Tab.0.left/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606736328458" />
-    <state width="2514" height="285" key="GridCell.Tab.0.right" timestamp="1606736328458">
+    <state width="2514" height="309" key="GridCell.Tab.0.left/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606902519332" />
+    <state width="2514" height="309" key="GridCell.Tab.0.right" timestamp="1606902519332">
       <screen x="0" y="497" width="2560" height="1413" />
     </state>
-    <state width="2514" height="285" key="GridCell.Tab.0.right/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606736328458" />
-    <state width="2514" height="484" key="GridCell.Tab.1.bottom" timestamp="1606732229261">
+    <state width="2514" height="309" key="GridCell.Tab.0.right/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606902519332" />
+    <state width="2514" height="484" key="GridCell.Tab.1.bottom" timestamp="1606897222523">
       <screen x="0" y="497" width="2560" height="1413" />
     </state>
-    <state width="2514" height="484" key="GridCell.Tab.1.bottom/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606732229261" />
-    <state width="2514" height="484" key="GridCell.Tab.1.center" timestamp="1606732229261">
+    <state width="2514" height="484" key="GridCell.Tab.1.bottom/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606897222523" />
+    <state width="2514" height="484" key="GridCell.Tab.1.center" timestamp="1606897222523">
       <screen x="0" y="497" width="2560" height="1413" />
     </state>
-    <state width="2514" height="484" key="GridCell.Tab.1.center/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606732229261" />
-    <state width="2514" height="484" key="GridCell.Tab.1.left" timestamp="1606732229261">
+    <state width="2514" height="484" key="GridCell.Tab.1.center/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606897222523" />
+    <state width="2514" height="484" key="GridCell.Tab.1.left" timestamp="1606897222523">
       <screen x="0" y="497" width="2560" height="1413" />
     </state>
-    <state width="2514" height="484" key="GridCell.Tab.1.left/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606732229261" />
-    <state width="2514" height="484" key="GridCell.Tab.1.right" timestamp="1606732229261">
+    <state width="2514" height="484" key="GridCell.Tab.1.left/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606897222523" />
+    <state width="2514" height="484" key="GridCell.Tab.1.right" timestamp="1606897222523">
       <screen x="0" y="497" width="2560" height="1413" />
     </state>
-    <state width="2514" height="484" key="GridCell.Tab.1.right/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606732229261" />
+    <state width="2514" height="484" key="GridCell.Tab.1.right/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606897222523" />
+    <state x="235" y="939" width="800" height="535" key="Vcs.Push.Dialog.v2" timestamp="1606902489543">
+      <screen x="0" y="497" width="2560" height="1413" />
+    </state>
+    <state x="235" y="939" width="800" height="535" key="Vcs.Push.Dialog.v2/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606902489543" />
     <state x="970" y="942" width="620" height="522" key="find.popup" timestamp="1606725242078">
       <screen x="0" y="497" width="2560" height="1413" />
     </state>
     <state x="970" y="942" width="620" height="522" key="find.popup/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606725242078" />
+    <state x="304" y="577" key="run.anything.popup" timestamp="1606835587600">
+      <screen x="0" y="497" width="2560" height="1413" />
+    </state>
+    <state x="304" y="577" key="run.anything.popup/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606835587600" />
     <state x="943" y="819" width="672" height="678" key="search.everywhere.popup" timestamp="1606733694285">
       <screen x="0" y="497" width="2560" height="1413" />
     </state>
@@ -192,6 +347,7 @@
     <watches-manager>
       <configuration name="CargoCommandRunConfiguration">
         <watch expression="ws_result.message_type" language="Rust" />
+        <watch expression="self.out_buf" language="Rust" />
       </configuration>
     </watches-manager>
   </component>
