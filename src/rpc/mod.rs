@@ -157,6 +157,7 @@ impl<'a, S> Rpc<'a, S>
 
 	/// Disconnects from the node by initiating a close handshake.
 	/// The TCP socket will be closed when the `PolkaProvider` instance is dropped.
+	///
 	/// # Errors
 	/// * `ErrorClosing` if the WebSocket has not been closed properly.
 	pub fn disconnect(&mut self) -> Result<(), RpcError> {
@@ -227,6 +228,7 @@ impl<'a, S> Rpc<'a, S>
 	/// Call rpc method with optional params
 	/// Field `result` is returned from the response if it can be parsed as a string
 	/// Otherwise, the whole JSON response is returned.
+	///
 	/// # Errors
 	/// * `ResponseDoesNotMatch`: JSON returned has been parsed but returned `id` is not the same as
 	/// the sent `id`

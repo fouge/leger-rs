@@ -39,13 +39,12 @@ pub struct Provider<'a, S> {
 
 impl<'a, S> Provider<'a, S>
 {
-	/// Create a provider to connect to a remote Substrate chain
-	/// Can use any Tcp stack implementing `TcpSocket`.
-	/// Remote address should respect the format: `IP:port`
-	/// A connection attempt is performed but doesn't yield an error if it fails.
-	/// If it fails, connection is performed when needed.
-	/// # Errors
-	/// * `ProviderError` returns an `RpcError` if `Rpc` is not created
+	/// Creates a provider to connect to a remote Substrate chain.
+	/// * Can use any TCP stack implementing [`embedded_nal::TcpClient`](../embedded_nal/trait.TcpClient.html) trait with socket of type `S`.
+	/// * Remote address should respect the format: `IP:port`.
+	/// * A connection attempt is performed but doesn't yield an error if it fails. Attempts will be made when needed.
+	/// ## Errors
+	/// * [`ProviderError`](enum.ProviderError.html) returns an [`RpcError`](enum.ProviderError.html#variant.RpcError) if RPC service is not created.
 	pub fn new(tcp: &'a dyn TcpClient<TcpSocket=S, Error=TcpError>, addr: &'a str) -> Result<Provider<'a, S>, ProviderError> {
 		let mut rpc:Rpc<S>;
 		match Rpc::new(tcp) {
