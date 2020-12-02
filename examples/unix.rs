@@ -5,18 +5,18 @@
 // with TcpStream (check out `socket` function).
 
 use embedded_nal::{TcpClient, SocketAddr, nb};
-use leger::{PolkaProviderError, PolkaProvider, TcpError};
 use std::net::{TcpStream, Shutdown};
 use std::str::FromStr;
 use std::io::{Write, Read};
 use std::time::Duration;
+use leger::{Provider, ProviderError, TcpError};
 
 pub struct UnixTcpStack {
 }
 
 impl TcpClient for UnixTcpStack {
 	type TcpSocket = TcpStream;
-	type Error = PolkaProviderError;
+	type Error = TcpError;
 
 	// We want the socket to be created but we don't want any connection
 	// using TcpStream don't allow to do so, so I am calling the connect function
@@ -66,18 +66,15 @@ impl TcpClient for UnixTcpStack {
 		if let Ok(_) = socket.shutdown(Shutdown::Both) {
 			Ok(())
 		} else {
-			Err(PolkaProviderError::TcpSocket(TcpError::CannotClose))
+			Err(TcpError::CannotClose)
 		}
 	}
 }
 
 
-fn main() -> Result<(), PolkaProviderError> {
+fn main() -> Result<(), ProviderError> {
 	let tcp = UnixTcpStack{	};
-	let mut pp:PolkaProvider<TcpStream> = PolkaProvider::new(&tcp)?;
-
-	pp.connect("127.0.0.1:9944")?;
-	println!("✅ Connection to remote done");
+	let mut pp: Provider<TcpStream> = Provider::new(&tcp, "127.0.0.1:9944")?;
 
 	let name = pp.chain_info()?;
 	println!("🧪 Name: {}", name);

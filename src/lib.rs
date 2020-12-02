@@ -1,16 +1,20 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![no_builtins]
 
-use embedded_websocket as ws;
-use embedded_websocket::{WebSocketOptions, WebSocketSendMessageType, WebSocketReceiveMessageType, WebSocketCloseStatusCode};
 use embedded_nal::{TcpClient};
-use rand::rngs::ThreadRng;
-use core::str::FromStr;
-use serde::{Serialize, Deserialize};
-use heapless::{String, consts::*};
+use crate::rpc::{Rpc, RpcError};
+
+mod account;
+mod extrinsic;
 
 #[cfg(test)]
 mod tests;
+mod rpc;
+
+#[derive(Debug)]
+pub enum ProviderError {
+	RpcError(RpcError)
+}
 
 #[derive(Debug)]
 pub enum TcpError {
@@ -21,270 +25,81 @@ pub enum TcpError {
 	Unknown,
 }
 
-#[derive(Debug)]
-pub enum JsonError {
-	ErrorParsing,
-}
-
-#[derive(Debug)]
-pub enum PolkaProviderError {
-	WebSocket(ws::Error),
-	TcpSocket(TcpError),
-	Embedded(embedded_nal::nb::Error<TcpError>),
-	Json(JsonError),
-	ResponseDoesNotMatch,
-	ErrorClosing,
-	Utf8Error,
-	Unknown
-}
-
-impl From<ws::Error> for PolkaProviderError {
-	fn from(err: ws::Error) -> PolkaProviderError {
-		PolkaProviderError::WebSocket(err)
+impl From<RpcError> for ProviderError {
+	fn from(err: RpcError) -> ProviderError {
+		ProviderError::RpcError(err)
 	}
 }
 
-impl From<TcpError> for PolkaProviderError {
-	fn from(err: TcpError) -> PolkaProviderError {
-		PolkaProviderError::TcpSocket(err)
-	}
+pub struct Provider<'a, S> {
+	rpc: Rpc<'a, S>,
+	addr: &'a str,
 }
 
-impl From<embedded_nal::nb::Error<TcpError>> for PolkaProviderError {
-	fn from(err: embedded_nal::nb::Error<TcpError>) -> PolkaProviderError {
-		PolkaProviderError::Embedded(err)
-	}
-}
 
-impl From<JsonError> for PolkaProviderError {
-	fn from(err: JsonError) -> PolkaProviderError {
-		PolkaProviderError::Json(err)
-	}
-}
-
-impl From<core::str::Utf8Error> for PolkaProviderError {
-	fn from(_: core::str::Utf8Error) -> PolkaProviderError {
-		PolkaProviderError::Utf8Error
-	}
-}
-
-impl From<embedded_nal::nb::Error<PolkaProviderError>> for PolkaProviderError {
-	fn from(err: embedded_nal::nb::Error<PolkaProviderError>) -> PolkaProviderError {
-		if let embedded_nal::nb::Error::Other(e) = err {
-			e
-		} else {
-			PolkaProviderError::Unknown
-		}
-	}
-}
-
-pub struct PolkaProvider<'a, S> {
-	socket: S,
-	ws: ws::WebSocketClient<ThreadRng>,
-	in_buf: [u8; 4096],
-	out_buf: [u8; 4096],
-	tcp: &'a dyn TcpClient<TcpSocket=S, Error=PolkaProviderError>,
-	cmd_id: usize,
-}
-
-#[derive(Serialize, Deserialize)]
-struct JsonRpc<'a> {
-	id: usize,
-	jsonrpc: &'a str,
-	#[serde(skip_serializing_if = "Option::is_none")]
-	method: Option<&'a str>,
-	#[serde(skip_serializing_if = "Option::is_none")]
-	result: Option<&'a str>,
-	#[serde(skip_serializing_if = "Option::is_none")]
-	params: Option<[usize; 1]>,
-}
-
-impl<'a, S> PolkaProvider<'a, S>
+impl<'a, S> Provider<'a, S>
 {
-	/// Instantiates the provider and init TCP socket, websocket lib and static buffers.
-	///
+	/// Create a provider to connect to a remote Substrate chain
+	/// Can use any Tcp stack implementing `TcpSocket`.
+	/// Remote address should respect the format: `IP:port`
+	/// A connection attempt is performed but doesn't yield an error if it fails.
+	/// If it fails, connection is performed when needed.
 	/// # Errors
-	/// * `TcpError::CannotCreate` if the TCP socket cannot be created
-	pub fn new(tcp: &dyn TcpClient<TcpSocket=S, Error=PolkaProviderError>) -> Result<PolkaProvider<S>, PolkaProviderError> {
-		let sock:S;
-		if let Ok(s) = tcp.socket() {
-			sock = s
-		} else {
-			return Err(PolkaProviderError::TcpSocket(TcpError::CannotCreate))
+	/// * `ProviderError` returns an `RpcError` if `Rpc` is not created
+	pub fn new(tcp: &'a dyn TcpClient<TcpSocket=S, Error=TcpError>, addr: &'a str) -> Result<Provider<'a, S>, ProviderError> {
+		let mut rpc:Rpc<S>;
+		match Rpc::new(tcp) {
+			Ok(r) => {
+				rpc = r;
+			}
+			Err(e) => {
+				return Err(ProviderError::RpcError(e))
+			}
 		}
 
-		Ok(PolkaProvider {
-			tcp,
-			socket: sock,
-			ws: ws::WebSocketClient::new_client(rand::thread_rng()),
-			in_buf: [0_u8;  4096],
-			out_buf: [0_u8;  4096],
-			cmd_id: 1_usize,
+		// try to connect without taking into account if it fails
+		let _ = rpc.connect(addr);
+
+		Ok(Provider {
+			rpc,
+			addr
 		})
 	}
 
-	/// Connects to the node at the given address. Initiates the websocket handshake.
-	///
-	/// # Errors
-	/// * `embedded_websocket::Error`: if any error with websocket
-	/// * `TcpError::InvalidAddress`: address cannot be parsed
-	/// * `TcpError::CountNotMatching`: sent bytes count doesn't equal the initial packet count
-	pub fn connect(&mut self, address: &str) -> Result<(), PolkaProviderError> {
-		// TCP connection first
-		if let Ok(addr) = embedded_nal::SocketAddr::from_str(address) {
-			self.tcp.connect(&mut self.socket, addr)?;
-		} else {
-			return Err(PolkaProviderError::TcpSocket(TcpError::InvalidAddress))
-		}
-
-		// initiate a websocket opening handshake
-		let websocket_options = WebSocketOptions {
-			path: "",
-			host: "localhost:9944",
-			origin: "http://localhost:9944",
-			sub_protocols: None,
-			additional_headers: None,
-		};
-		let (len, web_socket_key) = self.ws.client_connect(&websocket_options, &mut self.out_buf)?;
-
-		// send websocket frame using tcp socket
-		let written = self.tcp.send(&mut self.socket, &self.out_buf[..len])?;
-		if written != len {
-			return Err(PolkaProviderError::TcpSocket(TcpError::CountNotMatching))
-		}
-
-		// read the response from the server and check it to complete the opening handshake
-		let received_size = self.tcp.receive(&mut self.socket, &mut self.in_buf)?;
-		self.ws.client_accept(&web_socket_key, &mut self.in_buf[..received_size])?;
-
-		Ok(())
-	}
-
-	/// Disconnects from the node by initiating a close handshake.
-	/// The TCP socket will be closed when the `PolkaProvider` instance is dropped.
-	/// # Errors
-	/// * `ErrorClosing` if the WebSocket has not been closed properly.
-	pub fn disconnect(&mut self) -> Result<(), PolkaProviderError> {
-		// initiate a close handshake
-		let send_size = self.ws.close(WebSocketCloseStatusCode::NormalClosure, None, &mut self.out_buf)?;
-		self.tcp.send(&mut self.socket, &self.out_buf[..send_size])?;
-
-		// read the reply from the server to complete the close handshake
-		let received_size = self.tcp.receive(&mut self.socket, &mut self.in_buf)?;
-		let ws_result = self.ws.read(&self.in_buf[..received_size], &mut self.out_buf)?;
-		match ws_result.message_type {
-			WebSocketReceiveMessageType::CloseCompleted => {
-				// we can close the TCP socket as well
-				self.tcp.close(&self.socket)?;
-				Ok(())
-			}
-			_ => {
-				Err(PolkaProviderError::ErrorClosing)
-			}
-		}
-	}
-
-	/// Send request with response (blocking wait)
-	fn request(&mut self, message: &str) -> Result<&str, PolkaProviderError> {
-		// create WS frame with message argument as payload
-		let len = self.ws.write(
-			WebSocketSendMessageType::Text,
-			true,
-			message.as_ref(),
-			&mut self.out_buf,
-		)?;
-
-		// send websocket frame
-		let written = self.tcp.send(&mut self.socket, &mut self.out_buf[..len])?;
-		if len != written {
-			return Err(PolkaProviderError::TcpSocket(TcpError::CountNotMatching))
-		}
-
-		// read the response from the server and parse websocket message
-		let received_size = self.tcp.receive(&mut self.socket, &mut self.in_buf)?;
-		let ws_result = self.ws.read(&self.in_buf[..received_size], &mut self.out_buf)?;
-		match ws_result.message_type {
-			WebSocketReceiveMessageType::Text => {
-				let res = core::str::from_utf8(&self.out_buf[..ws_result.len_to])?;
-				Ok(res)
-			}
-			WebSocketReceiveMessageType::CloseMustReply => {
-			// Signals that the other party has initiated the close handshake. If you receive this
-			// message you should respond with a `WebSocketSendMessageType::CloseReply` with the
-			// same payload as close message
-			// TODO not tested
-				let len = self.ws.write(
-					WebSocketSendMessageType::CloseReply,
-					true,
-					&self.out_buf[..ws_result.len_to], // take payload from received message
-					&mut self.in_buf,
-				)?;
-				self.tcp.send(&mut self.socket, &mut self.in_buf[..len])?;
-
-				Err(PolkaProviderError::WebSocket(ws::Error::Unknown))
-			}
-			_ => {
-				Err(PolkaProviderError::WebSocket(ws::Error::Unknown))
-			}
-		}
-	}
-
-	/// Call rpc method with optional params
-	/// Field `result` is returned from the response if it can be parsed as a string
-	/// Otherwise, the whole JSON response is returned.
-	/// # Errors
-	/// * `ResponseDoesNotMatch`: JSON returned has been parsed but returned `id` is not the same as
-	/// the sent `id`
-	/// * any other error than can happen with `request()`
-	pub fn rpc_method(&mut self, method: Option<&str>, params: Option<[usize; 1]>) -> Result<&str, PolkaProviderError> {
-		// construct request from method and params
-		let json_req = JsonRpc{
-			id: self.cmd_id,
-			jsonrpc:"2.0",
-			method: method,
-			params: params,
-			result: None
-		};
-		let req_str: String<U128> = serde_json_core::to_string(&json_req).unwrap();
-		self.cmd_id = self.cmd_id + 1_usize;
-		let response = self.request(req_str.as_str());
-
-		// Parse response if it contains a result string
-		// returns the whole response if JSON cannot be parsed
-		match response {
-			Ok(res) => {
-				if let Ok(json_res) = serde_json_core::from_str::<JsonRpc>(res) {
-					if json_res.id == json_req.id {
-						Ok(json_res.result.unwrap_or(""))
-					} else {
-						Err(PolkaProviderError::ResponseDoesNotMatch)
-					}
-				} else {
-					// At the moment, let's return the whole response struct
-					// to better analyze the result
-					Ok(res)
-				}
-			}
-			Err(e) => {
-				Err(e)
-			}
-		}
-	}
-
 	/// Get block genesis hash
-	pub fn genesis_hash(&mut self) -> Result<&str, PolkaProviderError> {
-		self.rpc_method(Some("chain_getBlockHash"), Some([0_usize]))
+	pub fn genesis_hash(&mut self) -> Result<&str, ProviderError> {
+		if !self.rpc.is_connected() {
+			self.rpc.connect(self.addr)?;
+		}
+
+		let res = self.rpc.rpc_method(Some("chain_getBlockHash"), Some([0_usize]))?;
+		Ok(res)
 	}
 
-	pub fn system_version(&mut self) -> Result<&str, PolkaProviderError> {
-		self.rpc_method(Some("system_version"), None)
+	pub fn system_version(&mut self) -> Result<&str, ProviderError> {
+		if !self.rpc.is_connected() {
+			self.rpc.connect(self.addr)?;
+		}
+
+		let res = self.rpc.rpc_method(Some("system_version"), None)?;
+		Ok(res)
 	}
 
-	pub fn chain_info(&mut self) -> Result<&str, PolkaProviderError> {
-		self.rpc_method(Some("system_name"), None)
+	pub fn chain_info(&mut self) -> Result<&str, ProviderError> {
+		if !self.rpc.is_connected() {
+			self.rpc.connect(self.addr)?;
+		}
+
+		let res = self.rpc.rpc_method(Some("system_name"), None)?;
+		Ok(res)
 	}
 
-	pub fn runtime_version(&mut self) -> Result<&str, PolkaProviderError> {
-		self.rpc_method(Some("state_getRuntimeVersion"), None)
+	pub fn runtime_version(&mut self) -> Result<&str, ProviderError> {
+		if !self.rpc.is_connected() {
+			self.rpc.connect(self.addr)?;
+		}
+
+		let res = self.rpc.rpc_method(Some("state_getRuntimeVersion"), None)?;
+		Ok(res)
 	}
 }

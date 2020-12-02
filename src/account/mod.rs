@@ -7,7 +7,8 @@ use ed25519_compact::{KeyPair, Seed, Noise};
 pub type Key = [u8; 32];
 
 pub struct Account {
-	keys: KeyPair, /// Public (account ID) and secret keys are stored into the `KeyPair`
+	/// Public (account ID) and secret keys are stored into the `KeyPair`
+	keys: KeyPair,
 }
 
 impl Account {
