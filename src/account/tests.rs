@@ -16,14 +16,15 @@ fn test_new_account() {
 		&mut account_id as &mut [u8])
 		.expect("Cannot decode hex string");
 
-	let mut public = [0_u8; 32];
-	let mut private = [0_u8; 64];
-
 	let account = Account::new(seed);
+
+	let mut public = [0_u8; 32];
 	public.copy_from_slice(account.keys.pk.as_ref());
-	private.copy_from_slice(account.keys.sk.as_ref());
 
 	assert_eq!(public, account_id);
+
+	let s = account.ss58();
+	assert_eq!(s, "5He7SpmVsdhoEKC5uwvPDngoCXECCeh8VrxoxnQTh1mgPiZa")
 }
 
 #[test]

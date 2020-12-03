@@ -11,11 +11,6 @@ use heapless::{String, Vec, consts::*};
 use serde::de::value::U64Deserializer;
 use blake2::{Blake2b, Blake2s, Digest};
 
-const PREFIX: &[u8] = b"SS58PRE";
-
-/// Key type is an array of 32 bytes
-pub type Key = [u8; 32];
-
 enum AccountError {
 	CannotFetchAccountInfo,
 	CannotConvert,
@@ -41,13 +36,17 @@ pub struct Account {
 	ss58: String<U64>,
 }
 
-impl Account {
-	/// Creates an account from private key (secret seed)
-	/// Creating account from secret phrase is not supported yet.
-	pub fn new(private_key: Key) -> Account {
-		// Generates a new key pair using private key as seed.
-		let key_pair = KeyPair::from_seed(Seed::new(private_key));
+/// Key type is an array of 32 bytes
+pub type Key = [u8; 32];
 
+const PREFIX: &[u8] = b"SS58PRE";
+
+pub trait KeyFormat {
+	fn to_ss58(&self) -> String<U64>;
+}
+
+impl KeyFormat for Key {
+	fn to_ss58(&self) -> String<U64> {
 		let mut body = [0_u8; 35];
 		let mut output = [0_u8; 64];
 
@@ -55,7 +54,7 @@ impl Account {
 		// address-Type is Generic Substrate wildcard
 		body[0] = 0x2A;
 		body[1..].iter_mut()
-			.zip(key_pair.pk.iter())
+			.zip(self.iter())
 			.for_each(|(f, t)| *f = *t);
 
 		let mut hasher = Blake2b::new();
@@ -69,8 +68,20 @@ impl Account {
 		let l = bs58::encode(body.as_ref()).into(&mut output[..]).unwrap();
 		let v: Vec<u8, U64> = Vec::from_slice(output[..l].as_ref()).unwrap();
 		let s: String<U64> = String::from_utf8(v).unwrap();
+		s
+	}
+}
 
-		Account { keys: key_pair, info: None, ss58: s }
+impl Account {
+	/// Creates an account from private key (secret seed)
+	/// Creating account from secret phrase is not supported yet.
+	pub fn new(private_key: Key) -> Account {
+		// Generates a new key pair using private key as seed.
+		let key_pair = KeyPair::from_seed(Seed::new(private_key));
+
+		let ss58 = key_pair.pk.to_ss58();
+
+		Account { keys: key_pair, info: None, ss58 }
 	}
 
 	pub fn sign_tx(&self, msg: &mut [u8]) {
