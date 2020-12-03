@@ -10,6 +10,7 @@ use std::str::FromStr;
 use std::io::{Write, Read};
 use std::time::Duration;
 use leger::{Provider, ProviderError, TcpError};
+use leger::chain::Chain;
 
 pub struct UnixTcpStack {
 }
@@ -76,16 +77,22 @@ fn main() -> Result<(), ProviderError> {
 	let tcp = UnixTcpStack{	};
 	let mut pp: Provider<TcpStream> = Provider::new(&tcp, "127.0.0.1:9944")?;
 
-	let name = pp.chain_info()?;
+	let name = pp.system_name()?;
 	println!("🧪 Name: {}", name);
 
 	let genesis = pp.system_version()?;
 	println!("✌️ Version {}", genesis);
 
-	let resp = pp.genesis_hash()?;
+	println!("🐥 Runtime version {}", pp.runtime_version()?);
+
+	let resp = pp.get_genesis_block_hash()?;
 	println!("🐥 Genesis block hash {}", resp);
 
-	println!("🐥 Runtime version {}", pp.runtime_version()?);
+	let resp = pp.get_block_hash(None)?;
+	println!("🏷 Last block hash {}", resp);
+
+	let resp = pp.get_finalized_head()?;
+	println!("🤖 Finalized head {}", resp);
 
 	Ok(())
 }

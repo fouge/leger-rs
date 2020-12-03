@@ -74,7 +74,7 @@ pub struct Rpc<'a, S> {
 }
 
 #[derive(Serialize, Deserialize)]
-struct JsonRpc<'a> {
+struct JsonRpc<'a, T> {
 	id: usize,
 	jsonrpc: &'a str,
 	#[serde(skip_serializing_if = "Option::is_none")]
@@ -82,7 +82,7 @@ struct JsonRpc<'a> {
 	#[serde(skip_serializing_if = "Option::is_none")]
 	result: Option<&'a str>,
 	#[serde(skip_serializing_if = "Option::is_none")]
-	params: Option<[usize; 1]>,
+	params: Option<T>,
 }
 
 impl<'a, S> Rpc<'a, S>
@@ -233,24 +233,25 @@ impl<'a, S> Rpc<'a, S>
 	/// * `ResponseDoesNotMatch`: JSON returned has been parsed but returned `id` is not the same as
 	/// the sent `id`
 	/// * any other error than can happen with `request()`
-	pub fn rpc_method(&mut self, method: Option<&str>, params: Option<[usize; 1]>) -> Result<&str, RpcError> {
+	pub fn rpc_method<T: Serialize>(&mut self, method: Option<&str>, params: Option<T>) -> Result<&str, RpcError> {
 		// construct request from method and params
 		let json_req = JsonRpc {
 			id: self.cmd_id,
 			jsonrpc: "2.0",
 			method: method,
-			params: params,
+			params,
 			result: None
 		};
 		let req_str: String<U128> = serde_json_core::to_string(&json_req).unwrap();
+		let req_str = req_str.as_str();
 		self.cmd_id = self.cmd_id + 1_usize;
-		let response = self.request(req_str.as_str());
+		let response = self.request(req_str);
 
 		// Parse response if it contains a result string
 		// returns the whole response if JSON cannot be parsed
 		match response {
 			Ok(res) => {
-				if let Ok(json_res) = serde_json_core::from_str::<JsonRpc>(res) {
+				if let Ok(json_res) = serde_json_core::from_str::<JsonRpc<Option<&str>>>(res) {
 					if json_res.id == json_req.id {
 						Ok(json_res.result.unwrap_or(""))
 					} else {

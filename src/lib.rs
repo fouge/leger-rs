@@ -3,13 +3,15 @@
 
 use embedded_nal::{TcpClient};
 use crate::rpc::{Rpc, RpcError};
-
-mod account;
-mod extrinsic;
+use crate::chain::Chain;
 
 #[cfg(test)]
 mod tests;
+
+mod account;
+mod extrinsic;
 mod rpc;
+pub mod chain;
 
 #[derive(Debug)]
 pub enum ProviderError {
@@ -35,7 +37,6 @@ pub struct Provider<'a, S> {
 	rpc: Rpc<'a, S>,
 	addr: &'a str,
 }
-
 
 impl<'a, S> Provider<'a, S>
 {
@@ -65,31 +66,21 @@ impl<'a, S> Provider<'a, S>
 		})
 	}
 
-	/// Get block genesis hash
-	pub fn genesis_hash(&mut self) -> Result<&str, ProviderError> {
-		if !self.rpc.is_connected() {
-			self.rpc.connect(self.addr)?;
-		}
-
-		let res = self.rpc.rpc_method(Some("chain_getBlockHash"), Some([0_usize]))?;
-		Ok(res)
-	}
-
 	pub fn system_version(&mut self) -> Result<&str, ProviderError> {
 		if !self.rpc.is_connected() {
 			self.rpc.connect(self.addr)?;
 		}
 
-		let res = self.rpc.rpc_method(Some("system_version"), None)?;
+		let res = self.rpc.rpc_method::<Option<()>>(Some("system_version"), None)?;
 		Ok(res)
 	}
 
-	pub fn chain_info(&mut self) -> Result<&str, ProviderError> {
+	pub fn system_name(&mut self) -> Result<&str, ProviderError> {
 		if !self.rpc.is_connected() {
 			self.rpc.connect(self.addr)?;
 		}
 
-		let res = self.rpc.rpc_method(Some("system_name"), None)?;
+		let res = self.rpc.rpc_method::<Option<()>>(Some("system_name"), None)?;
 		Ok(res)
 	}
 
@@ -98,7 +89,33 @@ impl<'a, S> Provider<'a, S>
 			self.rpc.connect(self.addr)?;
 		}
 
-		let res = self.rpc.rpc_method(Some("state_getRuntimeVersion"), None)?;
+		let res = self.rpc.rpc_method::<Option<()>>(Some("state_getRuntimeVersion"), None)?;
+		Ok(res)
+	}
+}
+
+impl<S>  Chain for Provider<'_, S> {
+	type Error = ProviderError;
+
+	fn get_block_hash(&mut self, number: Option<[usize; 1]>) -> Result<&str, Self::Error> {
+		if !self.rpc.is_connected() {
+			self.rpc.connect(self.addr)?;
+		}
+
+		let res = self.rpc.rpc_method(Some("chain_getBlockHash"), number)?;
+		Ok(res)
+	}
+
+	fn get_genesis_block_hash(&mut self) -> Result<&str, Self::Error> {
+		self.get_block_hash(Some([0_usize; 1]))
+	}
+
+	fn get_finalized_head(&mut self) -> Result<&str, Self::Error> {
+		if !self.rpc.is_connected() {
+			self.rpc.connect(self.addr)?;
+		}
+
+		let res = self.rpc.rpc_method::<Option<()>>(Some("chain_getFinalizedHead"), None)?;
 		Ok(res)
 	}
 }
