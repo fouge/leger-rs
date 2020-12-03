@@ -23,7 +23,7 @@
   </component>
   <component name="CMakeSettings">
     <configurations>
-      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" ENABLED="true" />
     </configurations>
   </component>
   <component name="CargoProjects">
@@ -31,8 +31,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="50193056-bf4f-4000-9603-88ad6df537f8" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/chain.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/unix.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/unix.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/rpc/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/rpc/mod.rs" afterDir="false" />
     </list>
@@ -72,7 +73,9 @@
     <property name="node.js.path.for.package.tslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
+    <property name="nodejs_package_manager_path" value="npm" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
+    <property name="settings.editor.selected.configurable" value="CPPToolchains" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -81,7 +84,24 @@
       <recent name="$PROJECT_DIR$/src/extrinsic" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Run unix">
+  <component name="RunManager" selected="Cargo.Test account::tests::test_to_ss58">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Expand leger::account" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="expand --lib --color=always --theme=GitHub --tests account" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Run unix" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="run --package leger-rs --example unix" />
@@ -118,9 +138,9 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test account::tests::test_public_key_generation" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+    <configuration name="Test account::tests::test_new_account_2" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
-      <option name="command" value="test --package leger-rs --lib account::tests::test_public_key_generation -- --exact" />
+      <option name="command" value="test --package leger-rs --lib account::tests::test_new_account_2 -- --exact" />
       <option name="allFeatures" value="false" />
       <option name="emulateTerminal" value="false" />
       <option name="backtrace" value="SHORT" />
@@ -130,16 +150,25 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
+    <configuration name="Test account::tests::test_to_ss58" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package leger-rs --lib account::tests::test_to_ss58 -- --exact" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
       <method v="2">
-        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Cargo.Run unix" />
+        <item itemvalue="Cargo.Test account::tests::test_to_ss58" />
+        <item itemvalue="Cargo.Test account::tests::test_new_account_2" />
         <item itemvalue="Cargo.Test account::tests::test_new_account" />
-        <item itemvalue="Cargo.Test account::tests::test_public_key_generation" />
+        <item itemvalue="Cargo.Expand leger::account" />
+        <item itemvalue="Cargo.Run unix" />
       </list>
     </recent_temporary>
   </component>
@@ -159,7 +188,8 @@
       <workItem from="1606723625929" duration="21101000" />
       <workItem from="1606806313353" duration="5431000" />
       <workItem from="1606811983271" duration="13858000" />
-      <workItem from="1606896336204" duration="8005000" />
+      <workItem from="1606896336204" duration="22784000" />
+      <workItem from="1606980658293" duration="9346000" />
     </task>
     <task id="LOCAL-00001" summary="Example of using websocket with Unix TcpStream to fetch block hash.">
       <created>1606736447521</created>
@@ -245,7 +275,42 @@
       <option name="project" value="LOCAL" />
       <updated>1606902356585</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Docs">
+      <created>1606904501808</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1606904501808</updated>
+    </task>
+    <task id="LOCAL-00014" summary="+.idea files">
+      <created>1606904520883</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1606904520883</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Storing public key as ss58 string. Added tests for account creation">
+      <created>1606988193576</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1606988193576</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Key type implement KeyFormat trait. +Some refacto">
+      <created>1606989755219</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1606989755219</updated>
+    </task>
+    <task id="LOCAL-00017" summary="Key type implement KeyFormat trait. +Some refacto">
+      <created>1606989778353</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1606989778353</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -275,73 +340,12 @@
     <MESSAGE value="Added Account: creation with test. Signing a payload has not been tested yet." />
     <MESSAGE value="Refactored, exposes only Provider." />
     <MESSAGE value="Error if parsing fails" />
-    <option name="LAST_COMMIT_MESSAGE" value="Error if parsing fails" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state x="738" y="861" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1606731213488">
-      <screen x="0" y="497" width="2560" height="1413" />
-    </state>
-    <state x="738" y="861" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606731213488" />
-    <state x="337" y="1005" width="596" height="403" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1606834084660">
-      <screen x="0" y="497" width="2560" height="1413" />
-    </state>
-    <state x="337" y="1005" width="596" height="403" key="#com.intellij.fileTypes.FileTypeChooser/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606834084660" />
-    <state x="1161" y="939" width="228" height="535" key="#xdebugger.XInspectDialog" timestamp="1606731284485">
-      <screen x="0" y="497" width="2560" height="1413" />
-    </state>
-    <state x="1161" y="939" width="228" height="535" key="#xdebugger.XInspectDialog/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606731284485" />
-    <state x="1038" y="948" key="#xdebugger.evaluate" timestamp="1606731298020">
-      <screen x="0" y="497" width="2560" height="1413" />
-    </state>
-    <state x="1038" y="948" key="#xdebugger.evaluate/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606731298020" />
-    <state width="2514" height="309" key="GridCell.Tab.0.bottom" timestamp="1606902519332">
-      <screen x="0" y="497" width="2560" height="1413" />
-    </state>
-    <state width="2514" height="309" key="GridCell.Tab.0.bottom/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606902519332" />
-    <state width="2514" height="309" key="GridCell.Tab.0.center" timestamp="1606902519332">
-      <screen x="0" y="497" width="2560" height="1413" />
-    </state>
-    <state width="2514" height="309" key="GridCell.Tab.0.center/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606902519332" />
-    <state width="2514" height="309" key="GridCell.Tab.0.left" timestamp="1606902519332">
-      <screen x="0" y="497" width="2560" height="1413" />
-    </state>
-    <state width="2514" height="309" key="GridCell.Tab.0.left/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606902519332" />
-    <state width="2514" height="309" key="GridCell.Tab.0.right" timestamp="1606902519332">
-      <screen x="0" y="497" width="2560" height="1413" />
-    </state>
-    <state width="2514" height="309" key="GridCell.Tab.0.right/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606902519332" />
-    <state width="2514" height="484" key="GridCell.Tab.1.bottom" timestamp="1606897222523">
-      <screen x="0" y="497" width="2560" height="1413" />
-    </state>
-    <state width="2514" height="484" key="GridCell.Tab.1.bottom/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606897222523" />
-    <state width="2514" height="484" key="GridCell.Tab.1.center" timestamp="1606897222523">
-      <screen x="0" y="497" width="2560" height="1413" />
-    </state>
-    <state width="2514" height="484" key="GridCell.Tab.1.center/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606897222523" />
-    <state width="2514" height="484" key="GridCell.Tab.1.left" timestamp="1606897222523">
-      <screen x="0" y="497" width="2560" height="1413" />
-    </state>
-    <state width="2514" height="484" key="GridCell.Tab.1.left/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606897222523" />
-    <state width="2514" height="484" key="GridCell.Tab.1.right" timestamp="1606897222523">
-      <screen x="0" y="497" width="2560" height="1413" />
-    </state>
-    <state width="2514" height="484" key="GridCell.Tab.1.right/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606897222523" />
-    <state x="235" y="939" width="800" height="535" key="Vcs.Push.Dialog.v2" timestamp="1606902489543">
-      <screen x="0" y="497" width="2560" height="1413" />
-    </state>
-    <state x="235" y="939" width="800" height="535" key="Vcs.Push.Dialog.v2/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606902489543" />
-    <state x="970" y="942" width="620" height="522" key="find.popup" timestamp="1606725242078">
-      <screen x="0" y="497" width="2560" height="1413" />
-    </state>
-    <state x="970" y="942" width="620" height="522" key="find.popup/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606725242078" />
-    <state x="304" y="577" key="run.anything.popup" timestamp="1606835587600">
-      <screen x="0" y="497" width="2560" height="1413" />
-    </state>
-    <state x="304" y="577" key="run.anything.popup/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606835587600" />
-    <state x="943" y="819" width="672" height="678" key="search.everywhere.popup" timestamp="1606733694285">
-      <screen x="0" y="497" width="2560" height="1413" />
-    </state>
-    <state x="943" y="819" width="672" height="678" key="search.everywhere.popup/0.497.2560.1413/2560.0.3840.2160@0.497.2560.1413" timestamp="1606733694285" />
+    <MESSAGE value="Docs" />
+    <MESSAGE value="+.idea files" />
+    <MESSAGE value="Storing public key as ss58 string. Added tests for account creation" />
+    <MESSAGE value="Key type implements KeyFormat trait. +Some refacto" />
+    <MESSAGE value="Key type implement KeyFormat trait. +Some refacto" />
+    <option name="LAST_COMMIT_MESSAGE" value="Key type implement KeyFormat trait. +Some refacto" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>
