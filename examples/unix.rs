@@ -11,6 +11,7 @@ use std::io::{Write, Read};
 use std::time::Duration;
 use leger::{Provider, ProviderError, TcpError};
 use leger::chain::Chain;
+use leger::account::{Account};
 
 pub struct UnixTcpStack {
 }
@@ -74,8 +75,16 @@ impl TcpClient for UnixTcpStack {
 
 
 fn main() -> Result<(), ProviderError> {
+	let mut seed:[u8; 32] = [0_u8; 32];
+	hex::decode_to_slice(
+		"DA5CE9BB3618B9004F0D76C0FE97DA6C075AE60937FC7B3A8C01A16A655E9388",
+		&mut seed as &mut [u8])
+		.expect("Cannot decode hex string");
+
 	let tcp = UnixTcpStack{	};
 	let mut pp: Provider<TcpStream> = Provider::new(&tcp, "127.0.0.1:9944")?;
+
+	let mut account = Account::new(seed);
 
 	let name = pp.system_name()?;
 	println!("🧪 Name: {}", name);
@@ -93,6 +102,23 @@ fn main() -> Result<(), ProviderError> {
 
 	let resp = pp.get_finalized_head()?;
 	println!("🤖 Finalized head {}", resp);
+
+	println!("🔑 Using account: {}", account.ss58());
+
+	let resp = account.get_info(&mut pp);
+	if let Ok(r) = resp {
+		println!("💰 {:?}", r);
+	}
+
+	let resp = account.get_balance(&mut pp);
+	match resp {
+		Ok(ba) => {
+			println!("💰 Balance: {}", ba);
+		}
+		Err(e) => {
+			eprintln!("Error {:?}", e);
+		}
+	}
 
 	Ok(())
 }

@@ -8,7 +8,7 @@ use crate::chain::Chain;
 #[cfg(test)]
 mod tests;
 
-mod account;
+pub mod account;
 mod extrinsic;
 mod rpc;
 pub mod chain;

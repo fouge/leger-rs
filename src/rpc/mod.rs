@@ -10,6 +10,7 @@ use crate::TcpError;
 #[derive(Debug)]
 pub enum JsonError {
 	ErrorParsing,
+	ErrorCode(i64)
 }
 
 #[derive(Debug)]
@@ -83,6 +84,23 @@ struct JsonRpc<'a, T> {
 	result: Option<&'a str>,
 	#[serde(skip_serializing_if = "Option::is_none")]
 	params: Option<T>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct ErrorCode <'a> {
+	#[serde(skip_serializing_if = "Option::is_none")]
+	code: Option<i64>,
+	#[serde(skip_serializing_if = "Option::is_none")]
+	message: Option<&'a str>,
+}
+
+//"{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32600,\"message\":\"Invalid request\"},\"id\":7}"
+#[derive(Serialize, Deserialize)]
+struct JsonErrorResponse<'a> {
+	id: usize,
+	jsonrpc: &'a str,
+	#[serde(skip_serializing_if = "Option::is_none")]
+	error: Option<ErrorCode<'a>>
 }
 
 impl<'a, S> Rpc<'a, S>
@@ -242,7 +260,7 @@ impl<'a, S> Rpc<'a, S>
 			params,
 			result: None
 		};
-		let req_str: String<U128> = serde_json_core::to_string(&json_req).unwrap();
+		let req_str: String<U512> = serde_json_core::to_string(&json_req).unwrap();
 		let req_str = req_str.as_str();
 		self.cmd_id = self.cmd_id + 1_usize;
 		let response = self.request(req_str);
@@ -253,12 +271,24 @@ impl<'a, S> Rpc<'a, S>
 			Ok(res) => {
 				if let Ok(json_res) = serde_json_core::from_str::<JsonRpc<Option<&str>>>(res) {
 					if json_res.id == json_req.id {
-						Ok(json_res.result.unwrap_or(""))
+						if let Some(result) = json_res.result {
+							return Ok(result)
+						} else {
+							if let Ok(json_err) = serde_json_core::from_str::<JsonErrorResponse>(res) {
+								if let Some(error) = json_err.error {
+									if let Some(code) = error.code {
+										return Err(RpcError::Json(JsonError::ErrorCode(code)))
+									}
+								}
+							}
+						}
+						Err(RpcError::Json(JsonError::ErrorParsing))
 					} else {
 						Err(RpcError::ResponseDoesNotMatch)
 					}
 				} else {
-					// At the moment, let's return the whole response struct
+					// The response is not a JsonRpc,
+					// at the moment, let's return the whole response struct
 					// to better analyze the result
 					Ok(res)
 				}
