@@ -86,9 +86,11 @@ impl Account {
 		Account { keys: key_pair, info: None, ss58 }
 	}
 
+	/// Generate signature for payload and write it back into the payload (64 bytes)
+	/// TODO: should we add some noise?
 	pub fn sign_tx(&self, msg: &mut [u8]) {
-		let signed = self.keys.sk.sign(&msg, Some(Noise::default()));
-		msg.copy_from_slice(signed.as_ref());
+		let signed = self.keys.sk.sign(&msg, None);
+		msg[0..64].copy_from_slice(signed.as_ref());
 	}
 
 	pub fn ss58(&self) -> &str {
