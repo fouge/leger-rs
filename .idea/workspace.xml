@@ -31,9 +31,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="50193056-bf4f-4000-9603-88ad6df537f8" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/chain.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/unix.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/unix.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/account/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/account/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/rpc/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/rpc/mod.rs" afterDir="false" />
     </list>
@@ -84,12 +85,7 @@
       <recent name="$PROJECT_DIR$/src/extrinsic" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test account::tests::test_to_ss58">
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
+  <component name="RunManager" selected="Cargo.Run unix">
     <configuration name="Expand leger::account" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="expand --lib --color=always --theme=GitHub --tests account" />
@@ -162,13 +158,18 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Cargo.Test account::tests::test_to_ss58" />
+        <item itemvalue="Cargo.Run unix" />
         <item itemvalue="Cargo.Test account::tests::test_new_account_2" />
         <item itemvalue="Cargo.Test account::tests::test_new_account" />
+        <item itemvalue="Cargo.Test account::tests::test_to_ss58" />
         <item itemvalue="Cargo.Expand leger::account" />
-        <item itemvalue="Cargo.Run unix" />
       </list>
     </recent_temporary>
   </component>
@@ -189,7 +190,8 @@
       <workItem from="1606806313353" duration="5431000" />
       <workItem from="1606811983271" duration="13858000" />
       <workItem from="1606896336204" duration="22784000" />
-      <workItem from="1606980658293" duration="9346000" />
+      <workItem from="1606980658293" duration="20131000" />
+      <workItem from="1607069970290" duration="9104000" />
     </task>
     <task id="LOCAL-00001" summary="Example of using websocket with Unix TcpStream to fetch block hash.">
       <created>1606736447521</created>
@@ -310,7 +312,21 @@
       <option name="project" value="LOCAL" />
       <updated>1606989778353</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="Provider to implement traits for the different functions.">
+      <created>1606991017256</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1606991017256</updated>
+    </task>
+    <task id="LOCAL-00019" summary="+idea file">
+      <created>1606991028537</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1606991028537</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -345,13 +361,16 @@
     <MESSAGE value="Storing public key as ss58 string. Added tests for account creation" />
     <MESSAGE value="Key type implements KeyFormat trait. +Some refacto" />
     <MESSAGE value="Key type implement KeyFormat trait. +Some refacto" />
-    <option name="LAST_COMMIT_MESSAGE" value="Key type implement KeyFormat trait. +Some refacto" />
+    <MESSAGE value="Provider to implement traits for the different functions." />
+    <MESSAGE value="+idea file" />
+    <option name="LAST_COMMIT_MESSAGE" value="+idea file" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>
       <configuration name="CargoCommandRunConfiguration">
         <watch expression="ws_result.message_type" language="Rust" />
         <watch expression="self.out_buf" language="Rust" />
+        <watch expression="output[64]" />
       </configuration>
     </watches-manager>
   </component>
