@@ -1,6 +1,6 @@
 use embedded_websocket as ws;
 use embedded_websocket::{WebSocketOptions, WebSocketSendMessageType, WebSocketReceiveMessageType, WebSocketCloseStatusCode};
-use embedded_nal::{TcpClient};
+use embedded_nal::{TcpClientStack};
 use rand::rngs::ThreadRng;
 use core::str::FromStr;
 use serde::{Serialize, Deserialize};
@@ -70,7 +70,7 @@ pub struct Rpc<'a, S> {
 	ws: ws::WebSocketClient<ThreadRng>,
 	in_buf: [u8; 4096],
 	out_buf: [u8; 4096],
-	tcp: &'a dyn TcpClient<TcpSocket=S, Error=TcpError>,
+	tcp: &'a dyn TcpClientStack<TcpSocket=S, Error=TcpError>,
 	cmd_id: usize,
 }
 
@@ -109,7 +109,7 @@ impl<'a, S> Rpc<'a, S>
 	///
 	/// # Errors
 	/// * `TcpError::CannotCreate` if the TCP socket cannot be created
-	pub fn new(tcp: &dyn TcpClient<TcpSocket=S, Error=TcpError>) -> Result<Rpc<S>, RpcError> {
+	pub fn new(tcp: &dyn TcpClientStack<TcpSocket=S, Error=TcpError>) -> Result<Rpc<S>, RpcError> {
 		let sock: S;
 		if let Ok(s) = tcp.socket() {
 			sock = s

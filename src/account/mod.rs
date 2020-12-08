@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests;
 
-use ed25519_compact::{KeyPair, Seed, Noise, PublicKey};
+use schnorrkel::{SecretKey, PublicKey, Keypair, Signature, signing_context, MiniSecretKey};
 use crate::Provider;
 use core::{str, mem};
 use heapless::{String, Vec, consts::*};
@@ -17,7 +17,7 @@ pub enum AccountError {
 #[repr(C)]
 #[derive(Debug)]
 pub struct AccountInfo {
-	nonce: u32,
+	pub(crate) nonce: u32,
 	ref_count: u32,
 	data: AccountData
 }
@@ -33,7 +33,7 @@ pub struct AccountData {
 
 pub struct Account {
 	/// Public (account ID) and secret keys are stored into the `KeyPair`
-	keys: KeyPair,
+	keys: Keypair,
 	info: Option<AccountInfo>,
 	ss58: String<U64>,
 }
@@ -56,7 +56,7 @@ impl KeyFormat for PublicKey {
 		// address-Type is Generic Substrate wildcard
 		body[0] = 0x2A;
 		body[1..].iter_mut()
-			.zip(self.iter())
+			.zip(self.to_bytes().iter())
 			.for_each(|(f, t)| *f = *t);
 
 		let mut hasher = Blake2b::new(64);
@@ -79,18 +79,23 @@ impl Account {
 	/// Creating account from secret phrase is not supported yet.
 	pub fn new(private_key: Key) -> Account {
 		// Generates a new key pair using private key as seed.
-		let key_pair = KeyPair::from_seed(Seed::new(private_key));
+		let mini = MiniSecretKey::from_bytes(private_key.as_ref()).expect("Cannot convert to mini key");
+		let secret_key: SecretKey = mini.expand(MiniSecretKey::ED25519_MODE);
+		let sk = SecretKey::from_bytes(secret_key.to_bytes().as_ref()).expect("Cannot use private key");
+		let key_pair = Keypair::from(sk);
 
-		let ss58 = key_pair.pk.to_ss58();
+		let ss58 = key_pair.public.to_ss58();
 
 		Account { keys: key_pair, info: None, ss58 }
 	}
 
 	/// Generate signature for payload and write it back into the payload (64 bytes)
 	/// TODO: should we add some noise?
-	pub fn sign_tx(&self, msg: &mut [u8]) {
-		let signed = self.keys.sk.sign(&msg, None);
-		msg[0..64].copy_from_slice(signed.as_ref());
+	pub fn sign_tx(&self, msg: &mut [u8], signature: &mut [u8]) {
+		let context = signing_context(b"substrate");
+		let sig: Signature = self.keys.sign(context.bytes(msg));
+
+		signature[0..64].copy_from_slice(sig.to_bytes().as_ref());
 	}
 
 	pub fn ss58(&self) -> &str {
@@ -98,7 +103,7 @@ impl Account {
 	}
 
 	pub fn u8a(&self) -> Key {
-		*self.keys.pk
+		self.keys.public.to_bytes()
 	}
 
 	/// Get account info from node storage
@@ -144,11 +149,14 @@ impl Account {
 		enc_dec_buf[1] = 0x78; // "x"
 		hex::encode_to_slice(params, &mut enc_dec_buf[2..]).unwrap();
 
-		let v: Vec<u8, U256> = Vec::from_slice(enc_dec_buf.as_ref()).unwrap();
-		let s: String<U256> = String::from_utf8(v).unwrap();
+		// TODO don't use heapless string if possible
+		// core::str::from_utf8 ?
+		let s = core::str::from_utf8(enc_dec_buf.as_ref()).expect("Cannot convert payload");
+		// let v: Vec<u8, U256> = Vec::from_slice(enc_dec_buf.as_ref()).unwrap();
+		// let s: String<U256> = String::from_utf8(v).unwrap();
 
 		// Sending the RPC request
-		let rpc_response = provider.rpc.rpc_method(Some("state_getStorage"), Some([s.as_str()]));
+		let rpc_response = provider.rpc.rpc_method(Some("state_getStorage"), Some([s]));
 
 		// AccountInfo is packed into an hex string starting with "0x".
 		// Let's parse if

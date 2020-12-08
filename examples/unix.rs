@@ -4,19 +4,20 @@
 // to the constraints brought by the Trait asking to create an unused socket, which is not possible
 // with TcpStream (check out `socket` function).
 
-use embedded_nal::{TcpClient, SocketAddr, nb};
+use embedded_nal::{TcpClientStack, SocketAddr, nb};
 use std::net::{TcpStream, Shutdown};
-use std::str::FromStr;
+use std::str::{FromStr};
 use std::io::{Write, Read};
 use std::time::Duration;
 use leger::{Provider, ProviderError, TcpError};
 use leger::chain::Chain;
 use leger::account::{Account};
+use leger::calls::Calls;
 
 pub struct UnixTcpStack {
 }
 
-impl TcpClient for UnixTcpStack {
+impl TcpClientStack for UnixTcpStack {
 	type TcpSocket = TcpStream;
 	type Error = TcpError;
 
@@ -76,11 +77,13 @@ impl TcpClient for UnixTcpStack {
 
 fn main() -> Result<(), ProviderError> {
 	let mut seed:[u8; 32] = [0_u8; 32];
+	// Use Alice account
+	// 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+	// secret: e5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a
 	hex::decode_to_slice(
-		"DA5CE9BB3618B9004F0D76C0FE97DA6C075AE60937FC7B3A8C01A16A655E9388",
+		"e5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a",
 		&mut seed as &mut [u8])
 		.expect("Cannot decode hex string");
-
 	let tcp = UnixTcpStack{	};
 	let mut pp: Provider<TcpStream> = Provider::new(&tcp, "127.0.0.1:9944")?;
 
@@ -95,10 +98,10 @@ fn main() -> Result<(), ProviderError> {
 	println!("🐥 Runtime version {}", pp.runtime_version()?);
 
 	let resp = pp.get_genesis_block_hash()?;
-	println!("🐥 Genesis block hash {}", resp);
+	println!("🐥 Genesis block hash 0x{:02x?}", resp);
 
 	let resp = pp.get_block_hash(None)?;
-	println!("🏷 Last block hash {}", resp);
+	println!("🏷 Last block hash 0x{:02x?}",resp);
 
 	let resp = pp.get_finalized_head()?;
 	println!("🤖 Finalized head {}", resp);
@@ -119,6 +122,20 @@ fn main() -> Result<(), ProviderError> {
 			eprintln!("Error {:?}", e);
 		}
 	}
+
+	// Sending to bob
+	// ss58: 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
+	let mut dest_account:[u8; 32] = [0_u8; 32];
+	hex::decode_to_slice(
+		"8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48",
+		&mut dest_account as &mut [u8])
+		.expect("Cannot decode hex string");
+
+	let amount_to_send = 2921503981796281;
+	println!("🤑 Sending {} units to Bob: 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty", amount_to_send);
+
+	let resp = pp.balance_transfer(&mut account, &dest_account, amount_to_send);
+	println!("🔗 Finalized block hash: {:?}", resp.unwrap());
 
 	Ok(())
 }
