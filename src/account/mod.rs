@@ -31,7 +31,6 @@ pub struct Account<'a> {
 	public: Key,
 	signer: &'a dyn LegerSigner,
 	info: Option<AccountInfo>,
-	ss58: String<U64>,
 }
 
 /// This trait must be implemented depending on hardware specifications.
@@ -44,55 +43,19 @@ pub trait LegerSigner {
 /// Key type is an array of 32 bytes
 pub type Key = [u8; 32];
 
-const PREFIX: &[u8] = b"SS58PRE";
-
-pub trait KeyFormat {
-	fn to_ss58(&self) -> String<U64>;
-}
-
-impl KeyFormat for Key {
-	fn to_ss58(&self) -> String<U64> {
-		let mut body = [0_u8; 35];
-		let mut output = [0_u8; 64];
-
-		// concatenate address type and public key
-		// address-Type is Generic Substrate wildcard
-		body[0] = 0x2A;
-		body[1..].iter_mut()
-			.zip(self.iter())
-			.for_each(|(f, t)| *f = *t);
-
-		let mut hasher = Blake2b::new(64);
-		hasher.update(PREFIX);
-		hasher.update(body[0..33].as_ref());
-		let hash = hasher.finalize();
-
-		body[33..].iter_mut().zip(hash.as_ref().iter())
-			.for_each(|(f, t)| *f = *t);
-
-		let l = bs58::encode(body.as_ref()).into(&mut output[..]).unwrap();
-		let v: Vec<u8, U64> = Vec::from_slice(output[..l].as_ref()).unwrap();
-		let s: String<U64> = String::from_utf8(v).unwrap();
-		s
-	}
-}
+pub const PREFIX: &[u8] = b"SS58PRE";
 
 impl<'a> Account<'a> {
 	/// Creates an account from private key (secret seed)
 	/// Creating account from secret phrase is not supported yet.
 	pub fn new(signer: &dyn LegerSigner) -> Account {
 		let public = signer.get_public();
-		let ss58 = public.to_ss58();
-		Account { public, signer: signer, info: None, ss58 }
+		Account { public, signer: signer, info: None }
 	}
 
 	/// Generate signature for payload and write it back into the payload (64 bytes)
 	pub fn sign_tx(&self, msg: &mut [u8], signature: &mut [u8; 64]) {
 		self.signer.sign(msg, signature);
-	}
-
-	pub fn ss58(&self) -> &str {
-		self.ss58.as_str()
 	}
 
 	pub fn u8a(&self) -> Key {

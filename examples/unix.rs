@@ -6,14 +6,15 @@
 
 use embedded_nal::{TcpClientStack, SocketAddr, nb};
 use std::net::{TcpStream, Shutdown};
-use std::str::{FromStr};
+use std::str::{FromStr, from_utf8};
 use std::io::{Write, Read};
 use std::time::Duration;
 use leger::{Provider, ProviderError, TcpError};
 use leger::chain::Chain;
-use leger::account::{Account, Key, LegerSigner};
+use leger::account::{Account, Key, LegerSigner, PREFIX};
 use leger::calls::Calls;
 use schnorrkel::{SecretKey, Keypair, Signature, signing_context, MiniSecretKey};
+use blake2_rfc::blake2b::Blake2b;
 
 pub struct UnixTcpStack {
 }
@@ -106,6 +107,35 @@ impl LegerSigner for LocalSigner {
 	}
 }
 
+pub trait KeyFormat {
+	fn to_ss58(&self) -> String;
+}
+
+impl KeyFormat for Key {
+	fn to_ss58(&self) -> String {
+		let mut body = [0_u8; 35];
+		let mut output = [0_u8; 64];
+
+		// concatenate address type and public key
+		// address-Type is Generic Substrate wildcard
+		body[0] = 0x2A;
+		body[1..].iter_mut()
+			.zip(self.iter())
+			.for_each(|(f, t)| *f = *t);
+
+		let mut hasher = Blake2b::new(64);
+		hasher.update(PREFIX);
+		hasher.update(body[0..33].as_ref());
+		let hash = hasher.finalize();
+
+		body[33..].iter_mut().zip(hash.as_ref().iter())
+			.for_each(|(f, t)| *f = *t);
+
+		let l = bs58::encode(body.as_ref()).into(&mut output[..]).unwrap();
+		let s = from_utf8(output.as_ref()).unwrap();
+		s.to_string()
+	}
+}
 
 fn main() -> Result<(), ProviderError> {
 	let mut seed:[u8; 32] = [0_u8; 32];
@@ -139,7 +169,7 @@ fn main() -> Result<(), ProviderError> {
 	let resp = pp.get_finalized_head()?;
 	println!("🤖 Finalized head {}", resp);
 
-	println!("🔑 Using account: {}", account.ss58());
+	println!("🔑 Using account: {}", account.u8a().to_ss58());
 
 	let resp = account.get_info(&mut pp);
 	if let Ok(r) = resp {
