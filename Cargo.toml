@@ -11,15 +11,23 @@ crate-type = ["rlib", "staticlib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rand = "0.7.3"
+rand = { version = "0.7.3", default-features = false}
 embedded-nal = { version="0.2.0", path = "../embedded-nal/" }
 embedded-websocket = "0.3.2"
 no-std-net = "0.4.0"
-serde = { version = "1.0.117", default-features = false, features = ["derive"] } # no-std
+serde = { version = "1.0.117", default-features = false, features = ["derive"] }
 serde-json-core = "0.1.0"
 heapless = "0.5.6"
-getrandom = { version = "0.1.15", default-features = false}
-schnorrkel = { version = "0.9.1", default-features = false, features = ["u32_backend", "getrandom"]}
-hex = { version = "0.4.2",  default-features = false } # no-std
-blake2-rfc = "0.2.18"
-bs58 = { version = "0.4.0", default-features = false } # no-std
+hex = { version = "0.4.2",  default-features = false }
+blake2-rfc = { version = "0.2.18", default-features = false }
+bs58 = { version = "0.4.0", default-features = false }
+schnorrkel = { version = "0.9.1", optional = true, default-features = false }
+
+[target.thumbv7em-none-eabihf.dependencies]
+panic_eqs = { git = "ssh://git@gitlab.com/equisense/firmware/panic_eqs.git" }
+
+[target_os.linux.dependencies]
+
+[features]
+default = ["rand/small_rng"]
+std = ["schnorrkel/getrandom", "schnorrkel/u64_backend", "schnorrkel/rand", "rand/std"]

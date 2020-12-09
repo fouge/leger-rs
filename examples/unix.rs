@@ -11,8 +11,9 @@ use std::io::{Write, Read};
 use std::time::Duration;
 use leger::{Provider, ProviderError, TcpError};
 use leger::chain::Chain;
-use leger::account::{Account};
+use leger::account::{Account, Key, LegerSigner};
 use leger::calls::Calls;
+use schnorrkel::{SecretKey, Keypair, Signature, signing_context, MiniSecretKey};
 
 pub struct UnixTcpStack {
 }
@@ -74,6 +75,37 @@ impl TcpClientStack for UnixTcpStack {
 	}
 }
 
+pub struct LocalSigner {
+	keys: Keypair,
+}
+
+impl LocalSigner {
+	fn new(seed: [u8; 32]) -> LocalSigner {
+		// Generates a new key pair using private key as seed.
+		let mini = MiniSecretKey::from_bytes(seed.as_ref()).expect("Cannot convert to mini key");
+		let secret_key: SecretKey = mini.expand(MiniSecretKey::ED25519_MODE);
+		let sk = SecretKey::from_bytes(secret_key.to_bytes().as_ref()).expect("Cannot use private key");
+		let keys = Keypair::from(sk);
+
+		LocalSigner {
+			keys
+		}
+	}
+}
+
+impl LegerSigner for LocalSigner {
+	fn get_public(&self) -> Key {
+		self.keys.public.to_bytes()
+	}
+
+	fn sign(&self, payload: &[u8], signature: &mut [u8; 64]) {
+		let context = signing_context(b"substrate");
+		let sig: Signature = self.keys.secret.sign(context.bytes(payload), &self.keys.public);
+
+		signature[0..64].copy_from_slice(sig.to_bytes().as_ref());
+	}
+}
+
 
 fn main() -> Result<(), ProviderError> {
 	let mut seed:[u8; 32] = [0_u8; 32];
@@ -87,7 +119,8 @@ fn main() -> Result<(), ProviderError> {
 	let tcp = UnixTcpStack{	};
 	let mut pp: Provider<TcpStream> = Provider::new(&tcp, "127.0.0.1:9944")?;
 
-	let mut account = Account::new(seed);
+	let signer = LocalSigner::new(seed);
+	let mut account = Account::new(&signer);
 
 	let name = pp.system_name()?;
 	println!("🧪 Name: {}", name);
@@ -138,4 +171,32 @@ fn main() -> Result<(), ProviderError> {
 	println!("🔗 Finalized block hash: {:?}", resp.unwrap());
 
 	Ok(())
+}
+
+
+/// Test key creation from secret seed.
+/// Private and public keys taken from https://substrate.dev/docs/en/knowledgebase/integrate/subkey
+///
+#[test]
+fn test_new_account() {
+	let mut seed:[u8; 32] = [0_u8; 32];
+	hex::decode_to_slice(
+		"554b6fc625fbea8f56eb56262d92ccb083fd6eaaf5ee9a966eaab4db2062f4d0",
+		&mut seed as &mut [u8])
+		.expect("Cannot decode hex string");
+	let mut account_id:[u8; 32] = [0_u8; 32];
+	hex::decode_to_slice(
+		"143fa4ecea108937a2324d36ee4cbce3c6f3a08b0499b276cd7adb7a7631a559",
+		&mut account_id as &mut [u8])
+		.expect("Cannot decode hex string");
+
+	let signer = LocalSigner::new(seed);
+	let account = Account::new(&signer);
+
+	let mut public = signer.get_public();
+
+	assert_eq!(public, account_id);
+
+	let s = account.ss58();
+	assert_eq!(s, "5CXFinBHRrArHzmC6iYVHSSgY1wMQEdL2AiL6RmSEsFvWezd")
 }

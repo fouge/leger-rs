@@ -12,6 +12,9 @@ use core::convert::TryFrom;
 use core::str::from_utf8;
 use crate::scale::Compact;
 
+#[cfg(target_arch = "arm")]
+extern crate panic_eqs;
+
 #[cfg(test)]
 mod tests;
 
@@ -224,7 +227,7 @@ impl<S> Calls for Provider<'_, S> {
 			let header:&mut [u8; MAXIMUM_HEADER_SIZE_BYTES] = <&mut [u8; MAXIMUM_HEADER_SIZE_BYTES]>::try_from(&mut param_buf[..MAXIMUM_HEADER_SIZE_BYTES]).unwrap();
 			match size_header_length {
 				2 => {
-					let mut size_bytes: &mut[u8; 2] = <&mut [u8; 2]>::try_from(&mut buf[..2]).unwrap();
+					let size_bytes: &mut[u8; 2] = <&mut [u8; 2]>::try_from(&mut buf[..2]).unwrap();
 					hex::encode_to_slice::<[u8; 2]>(*size_bytes, &mut header[MAXIMUM_HEADER_SIZE_BYTES-4..MAXIMUM_HEADER_SIZE_BYTES].as_mut()).unwrap();
 				}
 				_ => {}
@@ -240,7 +243,7 @@ impl<S> Calls for Provider<'_, S> {
 				let start_idx = MAXIMUM_HEADER_SIZE_BYTES-size_header_length*2-2;
 				param_buf[start_idx] = 0x30; // "0"
 				param_buf[start_idx+1] = 0x78; // "x"
-				let mut sig_payload_str:&str = from_utf8(param_buf[start_idx..MAXIMUM_HEADER_SIZE_BYTES+payload_size*2].as_ref()).unwrap();
+				let sig_payload_str:&str = from_utf8(param_buf[start_idx..MAXIMUM_HEADER_SIZE_BYTES+payload_size*2].as_ref()).unwrap();
 				res = self.rpc.rpc_method(Some("author_submitExtrinsic"), Some([sig_payload_str]))?;
 			}
 			Ok(res)

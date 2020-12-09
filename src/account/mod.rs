@@ -1,7 +1,3 @@
-#[cfg(test)]
-mod tests;
-
-use schnorrkel::{SecretKey, PublicKey, Keypair, Signature, signing_context, MiniSecretKey};
 use crate::Provider;
 use core::{str, mem};
 use heapless::{String, Vec, consts::*};
@@ -15,7 +11,7 @@ pub enum AccountError {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct AccountInfo {
 	pub(crate) nonce: u32,
 	ref_count: u32,
@@ -23,7 +19,7 @@ pub struct AccountInfo {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct AccountData {
 	free: u128,
 	reserved: u128,
@@ -31,11 +27,18 @@ pub struct AccountData {
 	free_frozen: u128,
 }
 
-pub struct Account {
-	/// Public (account ID) and secret keys are stored into the `KeyPair`
-	keys: Keypair,
+pub struct Account<'a> {
+	public: Key,
+	signer: &'a dyn LegerSigner,
 	info: Option<AccountInfo>,
 	ss58: String<U64>,
+}
+
+/// This trait must be implemented depending on hardware specifications.
+/// Signing (Ed25519 or Sr25519) should make use of a secure element.
+pub trait LegerSigner {
+	fn get_public(&self) -> Key;
+	fn sign(&self, payload: &[u8], signature: &mut [u8; 64]);
 }
 
 /// Key type is an array of 32 bytes
@@ -47,7 +50,7 @@ pub trait KeyFormat {
 	fn to_ss58(&self) -> String<U64>;
 }
 
-impl KeyFormat for PublicKey {
+impl KeyFormat for Key {
 	fn to_ss58(&self) -> String<U64> {
 		let mut body = [0_u8; 35];
 		let mut output = [0_u8; 64];
@@ -56,7 +59,7 @@ impl KeyFormat for PublicKey {
 		// address-Type is Generic Substrate wildcard
 		body[0] = 0x2A;
 		body[1..].iter_mut()
-			.zip(self.to_bytes().iter())
+			.zip(self.iter())
 			.for_each(|(f, t)| *f = *t);
 
 		let mut hasher = Blake2b::new(64);
@@ -74,28 +77,18 @@ impl KeyFormat for PublicKey {
 	}
 }
 
-impl Account {
+impl<'a> Account<'a> {
 	/// Creates an account from private key (secret seed)
 	/// Creating account from secret phrase is not supported yet.
-	pub fn new(private_key: Key) -> Account {
-		// Generates a new key pair using private key as seed.
-		let mini = MiniSecretKey::from_bytes(private_key.as_ref()).expect("Cannot convert to mini key");
-		let secret_key: SecretKey = mini.expand(MiniSecretKey::ED25519_MODE);
-		let sk = SecretKey::from_bytes(secret_key.to_bytes().as_ref()).expect("Cannot use private key");
-		let key_pair = Keypair::from(sk);
-
-		let ss58 = key_pair.public.to_ss58();
-
-		Account { keys: key_pair, info: None, ss58 }
+	pub fn new(signer: &dyn LegerSigner) -> Account {
+		let public = signer.get_public();
+		let ss58 = public.to_ss58();
+		Account { public, signer: signer, info: None, ss58 }
 	}
 
 	/// Generate signature for payload and write it back into the payload (64 bytes)
-	/// TODO: should we add some noise?
-	pub fn sign_tx(&self, msg: &mut [u8], signature: &mut [u8]) {
-		let context = signing_context(b"substrate");
-		let sig: Signature = self.keys.sign(context.bytes(msg));
-
-		signature[0..64].copy_from_slice(sig.to_bytes().as_ref());
+	pub fn sign_tx(&self, msg: &mut [u8], signature: &mut [u8; 64]) {
+		self.signer.sign(msg, signature);
 	}
 
 	pub fn ss58(&self) -> &str {
@@ -103,7 +96,7 @@ impl Account {
 	}
 
 	pub fn u8a(&self) -> Key {
-		self.keys.public.to_bytes()
+		self.public
 	}
 
 	/// Get account info from node storage
@@ -149,17 +142,14 @@ impl Account {
 		enc_dec_buf[1] = 0x78; // "x"
 		hex::encode_to_slice(params, &mut enc_dec_buf[2..]).unwrap();
 
-		// TODO don't use heapless string if possible
-		// core::str::from_utf8 ?
 		let s = core::str::from_utf8(enc_dec_buf.as_ref()).expect("Cannot convert payload");
-		// let v: Vec<u8, U256> = Vec::from_slice(enc_dec_buf.as_ref()).unwrap();
-		// let s: String<U256> = String::from_utf8(v).unwrap();
 
 		// Sending the RPC request
 		let rpc_response = provider.rpc.rpc_method(Some("state_getStorage"), Some([s]));
 
 		// AccountInfo is packed into an hex string starting with "0x".
-		// Let's parse if
+		// Let's parse it if we have an answer
+		// otherwise, use last known AccountInfo
 		if let Ok(r) = rpc_response {
 			let hex_data = r.strip_prefix("0x").map_or(
 				r,
@@ -171,13 +161,18 @@ impl Account {
 			if hex::decode_to_slice(hex_data, &mut enc_dec_buf[..hex_data.len()/2]).is_ok() {
 				let acc;
 				unsafe { acc = mem::transmute::<[u8; 72], AccountInfo>(enc_dec_buf[0..72].try_into().expect("Cannot convert slice to array")); }
+
+				self.info = Some(acc.clone());
+
 				return Ok(acc)
 			} else {
 				return Err(AccountError::CannotConvert)
 			}
+		} else if let Some(i) = &self.info {
+			Ok(*i)
+		} else {
+			Err(AccountError::CannotFetchAccountInfo)
 		}
-
-		Err(AccountError::CannotFetchAccountInfo)
 	}
 
 	pub fn get_balance<S>(&mut self, provider: &mut Provider<S>) -> Result<u128, AccountError> {

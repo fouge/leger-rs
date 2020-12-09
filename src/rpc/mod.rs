@@ -1,11 +1,12 @@
 use embedded_websocket as ws;
 use embedded_websocket::{WebSocketOptions, WebSocketSendMessageType, WebSocketReceiveMessageType, WebSocketCloseStatusCode};
 use embedded_nal::{TcpClientStack};
-use rand::rngs::ThreadRng;
+use rand::rngs::SmallRng;
 use core::str::FromStr;
 use serde::{Serialize, Deserialize};
 use heapless::{String, consts::*};
 use crate::TcpError;
+use rand::{SeedableRng};
 
 #[derive(Debug)]
 pub enum JsonError {
@@ -67,7 +68,7 @@ impl From<embedded_nal::nb::Error<RpcError>> for RpcError {
 
 pub struct Rpc<'a, S> {
 	socket: S,
-	ws: ws::WebSocketClient<ThreadRng>,
+	ws: ws::WebSocketClient<SmallRng>,
 	in_buf: [u8; 4096],
 	out_buf: [u8; 4096],
 	tcp: &'a dyn TcpClientStack<TcpSocket=S, Error=TcpError>,
@@ -120,7 +121,7 @@ impl<'a, S> Rpc<'a, S>
 		Ok(Rpc {
 			tcp,
 			socket: sock,
-			ws: ws::WebSocketClient::new_client(rand::thread_rng()),
+			ws: ws::WebSocketClient::new_client(SmallRng::seed_from_u64(12)),
 			in_buf: [0_u8; 4096],
 			out_buf: [0_u8; 4096],
 			cmd_id: 1_usize,
