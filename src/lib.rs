@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![no_builtins]
 
-use embedded_nal::{TcpClientStack};
+use embedded_nal::{TcpClient};
 use crate::rpc::{Rpc, RpcError};
 use crate::chain::Chain;
 use crate::calls::Calls;
@@ -36,7 +36,7 @@ pub enum ProviderError {
 #[derive(Debug)]
 pub enum TcpError {
 	CountNotMatching,
-	CannotCreate,
+	CannotConnect,
 	CannotClose,
 	InvalidAddress,
 	Unknown,
@@ -68,7 +68,7 @@ impl<'a, S> Provider<'a, S>
 	/// * A connection attempt is performed but doesn't yield an error if it fails. Attempts will be made when needed.
 	/// ## Errors
 	/// * [`ProviderError`](enum.ProviderError.html) returns an [`RpcError`](enum.ProviderError.html#variant.RpcError) if RPC service is not created.
-	pub fn new(tcp: &'a dyn TcpClientStack<TcpSocket=S, Error=TcpError>, addr: &'a str) -> Result<Provider<'a, S>, ProviderError> {
+	pub fn new(tcp: &'a dyn TcpClient<TcpSocket=S, Error=TcpError>, addr: &'a str) -> Result<Provider<'a, S>, ProviderError> {
 		let mut rpc:Rpc<S>;
 		match Rpc::new(tcp) {
 			Ok(r) => {

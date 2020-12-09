@@ -1,6 +1,6 @@
 use embedded_websocket as ws;
 use embedded_websocket::{WebSocketOptions, WebSocketSendMessageType, WebSocketReceiveMessageType, WebSocketCloseStatusCode};
-use embedded_nal::{TcpClientStack};
+use embedded_nal::{TcpClient};
 use rand::rngs::SmallRng;
 use core::str::FromStr;
 use serde::{Serialize, Deserialize};
@@ -67,11 +67,11 @@ impl From<embedded_nal::nb::Error<RpcError>> for RpcError {
 }
 
 pub struct Rpc<'a, S> {
-	socket: S,
+	socket: Option<S>,
 	ws: ws::WebSocketClient<SmallRng>,
 	in_buf: [u8; 4096],
 	out_buf: [u8; 4096],
-	tcp: &'a dyn TcpClientStack<TcpSocket=S, Error=TcpError>,
+	tcp: &'a dyn TcpClient<TcpSocket=S, Error=TcpError>,
 	cmd_id: usize,
 }
 
@@ -110,13 +110,8 @@ impl<'a, S> Rpc<'a, S>
 	///
 	/// # Errors
 	/// * `TcpError::CannotCreate` if the TCP socket cannot be created
-	pub fn new(tcp: &dyn TcpClientStack<TcpSocket=S, Error=TcpError>) -> Result<Rpc<S>, RpcError> {
-		let sock: S;
-		if let Ok(s) = tcp.socket() {
-			sock = s
-		} else {
-			return Err(RpcError::TcpSocket(TcpError::CannotCreate))
-		}
+	pub fn new(tcp: &dyn TcpClient<TcpSocket=S, Error=TcpError>) -> Result<Rpc<S>, RpcError> {
+		let sock = tcp.socket().ok();
 
 		Ok(Rpc {
 			tcp,
@@ -137,7 +132,11 @@ impl<'a, S> Rpc<'a, S>
 	pub fn connect(&mut self, address: &str) -> Result<(), RpcError> {
 		// TCP connection first
 		if let Ok(addr) = embedded_nal::SocketAddr::from_str(address) {
-			self.tcp.connect(&mut self.socket, addr)?;
+			if let Some(mut s) = self.socket.as_mut() {
+				self.tcp.connect(&mut s, addr)?;
+			} else {
+				return Err(RpcError::TcpSocket(TcpError::CannotConnect))
+			}
 		} else {
 			return Err(RpcError::TcpSocket(TcpError::InvalidAddress))
 		}
@@ -153,13 +152,13 @@ impl<'a, S> Rpc<'a, S>
 		let (len, web_socket_key) = self.ws.client_connect(&websocket_options, &mut self.out_buf)?;
 
 		// send websocket frame using tcp socket
-		let written = self.tcp.send(&mut self.socket, &self.out_buf[..len])?;
+		let written = self.tcp.send(&mut self.socket.as_mut().unwrap(), &self.out_buf[..len])?;
 		if written != len {
 			return Err(RpcError::TcpSocket(TcpError::CountNotMatching))
 		}
 
 		// read the response from the server and check it to complete the opening handshake
-		let received_size = self.tcp.receive(&mut self.socket, &mut self.in_buf)?;
+		let received_size = self.tcp.receive(&mut self.socket.as_mut().unwrap(), &mut self.in_buf)?;
 		self.ws.client_accept(&web_socket_key, &mut self.in_buf[..received_size])?;
 
 		Ok(())
@@ -167,11 +166,11 @@ impl<'a, S> Rpc<'a, S>
 
 	/// Returns TCP socket state
 	pub fn is_connected(&self) -> bool {
-		if let Ok(c) = self.tcp.is_connected(&self.socket) {
-			c
-		} else {
-			false
-		}
+		let c = self.socket.as_ref()
+			.map(|socket| self.tcp.is_connected(socket))
+			.unwrap_or(Ok(false))
+			.unwrap_or(false);
+		c
 	}
 
 	/// Disconnects from the node by initiating a close handshake.
@@ -182,15 +181,16 @@ impl<'a, S> Rpc<'a, S>
 	pub fn disconnect(&mut self) -> Result<(), RpcError> {
 		// initiate a close handshake
 		let send_size = self.ws.close(WebSocketCloseStatusCode::NormalClosure, None, &mut self.out_buf)?;
-		self.tcp.send(&mut self.socket, &self.out_buf[..send_size])?;
+		self.tcp.send(&mut self.socket.as_mut().unwrap(), &self.out_buf[..send_size])?;
 
 		// read the reply from the server to complete the close handshake
-		let received_size = self.tcp.receive(&mut self.socket, &mut self.in_buf)?;
+		let received_size = self.tcp.receive(&mut self.socket.as_mut().unwrap(), &mut self.in_buf)?;
+
 		let ws_result = self.ws.read(&self.in_buf[..received_size], &mut self.out_buf)?;
 		match ws_result.message_type {
 			WebSocketReceiveMessageType::CloseCompleted => {
 				// we can close the TCP socket as well
-				self.tcp.close(&self.socket)?;
+				self.socket.take().and_then(|socket| self.tcp.close(socket).ok());
 				Ok(())
 			}
 			_ => {
@@ -210,13 +210,13 @@ impl<'a, S> Rpc<'a, S>
 		)?;
 
 		// send websocket frame
-		let written = self.tcp.send(&mut self.socket, &mut self.out_buf[..len])?;
+		let written = self.tcp.send(&mut self.socket.as_mut().unwrap(), &mut self.out_buf[..len])?;
 		if len != written {
 			return Err(RpcError::TcpSocket(TcpError::CountNotMatching))
 		}
 
 		// read the response from the server and parse websocket message
-		let received_size = self.tcp.receive(&mut self.socket, &mut self.in_buf)?;
+		let received_size = self.tcp.receive(&mut self.socket.as_mut().unwrap(), &mut self.in_buf)?;
 		let ws_result = self.ws.read(&self.in_buf[..received_size], &mut self.out_buf)?;
 		match ws_result.message_type {
 			WebSocketReceiveMessageType::Text => {
@@ -234,7 +234,7 @@ impl<'a, S> Rpc<'a, S>
 					&self.out_buf[..ws_result.len_to], // take payload from received message
 					&mut self.in_buf,
 				)?;
-				self.tcp.send(&mut self.socket, &mut self.in_buf[..len])?;
+				self.tcp.send(&mut self.socket.as_mut().unwrap(), &mut self.in_buf[..len])?;
 
 				Err(RpcError::WebSocket(ws::Error::Unknown))
 			}
@@ -257,7 +257,7 @@ impl<'a, S> Rpc<'a, S>
 		let json_req = JsonRpc {
 			id: self.cmd_id,
 			jsonrpc: "2.0",
-			method: method,
+			method,
 			params,
 			result: None
 		};

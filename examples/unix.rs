@@ -4,7 +4,7 @@
 // to the constraints brought by the Trait asking to create an unused socket, which is not possible
 // with TcpStream (check out `socket` function).
 
-use embedded_nal::{TcpClientStack, SocketAddr, nb};
+use embedded_nal::{TcpClient, SocketAddr, nb};
 use std::net::{TcpStream, Shutdown};
 use std::str::{FromStr, from_utf8};
 use std::io::{Write, Read};
@@ -19,7 +19,7 @@ use blake2_rfc::blake2b::Blake2b;
 pub struct UnixTcpStack {
 }
 
-impl TcpClientStack for UnixTcpStack {
+impl TcpClient for UnixTcpStack {
 	type TcpSocket = TcpStream;
 	type Error = TcpError;
 
@@ -30,8 +30,12 @@ impl TcpClientStack for UnixTcpStack {
 	fn socket(&self) -> Result<Self::TcpSocket, Self::Error> {
 		let addrs = [ std::net::SocketAddr::from(([127, 0, 0, 1], 9944)) ];
 
-		let socket = TcpStream::connect(&addrs[..]).unwrap();
-		Ok(socket)
+		let socket = TcpStream::connect(&addrs[..]);
+		if let Ok(s) = socket {
+			Ok(s)
+		} else {
+			Err(TcpError::CannotConnect)
+		}
 	}
 
 	fn connect(&self, socket: &mut Self::TcpSocket, remote: SocketAddr) -> nb::Result<(), Self::Error> {
@@ -65,7 +69,7 @@ impl TcpClientStack for UnixTcpStack {
 		}
 	}
 
-	fn close(&self, socket: &Self::TcpSocket) -> Result<(), Self::Error> {
+	fn close(&self, socket: Self::TcpSocket) -> Result<(), Self::Error> {
 		// It is advised to drop the socket reference to make sure it is closed
 		// [The connection will be closed when the value is dropped](https://doc.rust-lang.org/beta/std/net/struct.TcpStream.html)
 		if let Ok(_) = socket.shutdown(Shutdown::Both) {
