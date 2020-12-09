@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="BranchesTreeState">
     <expand>
       <path>
@@ -26,21 +29,21 @@
       <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" ENABLED="true" />
     </configurations>
   </component>
+  <component name="CargoProjectFeatures">
+    <cargoProject file="$PROJECT_DIR$/Cargo.toml">
+      <package file="$PROJECT_DIR$">
+        <feature name="std" />
+        <feature name="schnorrkel" />
+      </package>
+    </cargoProject>
+  </component>
   <component name="CargoProjects">
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="50193056-bf4f-4000-9603-88ad6df537f8" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/calls.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/extrinsic/tests.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/scale/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/scale/tests.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/unix.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/unix.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/account/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/account/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/account/tests.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/account/tests.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/chain.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/chain.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/rpc/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/rpc/mod.rs" afterDir="false" />
     </list>
@@ -74,6 +77,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="cf.first.check.clang-format" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../nanode-rs" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -92,10 +96,22 @@
     </key>
   </component>
   <component name="RunManager" selected="Cargo.Run unix">
+    <configuration name="Build - arm - release" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="build --package leger-rs --target thumbv7em-none-eabihf --release" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Run unix" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
-      <option name="command" value="run --package leger-rs --example unix" />
-      <option name="allFeatures" value="false" />
+      <option name="command" value="run --package leger-rs --example unix --features std" />
+      <option name="allFeatures" value="true" />
       <option name="emulateTerminal" value="false" />
       <option name="backtrace" value="SHORT" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -104,58 +120,10 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Run" type="CargoCommandRunConfiguration" factoryName="Cargo Command" nameIsGenerated="true">
+    <configuration name="Test scale::tests::test_scale_compact" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
-      <option name="command" value="run" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="backtrace" value="SHORT" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test account::tests::test_alice_account" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="channel" value="DEFAULT" />
-      <option name="command" value="test --package leger-rs --lib account::tests::test_alice_account -- --exact" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="backtrace" value="SHORT" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test account::tests::test_new_account" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="channel" value="DEFAULT" />
-      <option name="command" value="test --package leger-rs --lib account::tests::test_new_account -- --exact" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="backtrace" value="SHORT" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test extrinsic::tests::test_scale_compact" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="channel" value="DEFAULT" />
-      <option name="command" value="test --package leger-rs --lib extrinsic::tests::test_scale_compact -- --exact" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="backtrace" value="SHORT" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test extrinsic::tests::test_u128_compact" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="channel" value="DEFAULT" />
-      <option name="command" value="test --package leger-rs --lib extrinsic::tests::test_u128_compact -- --exact" />
-      <option name="allFeatures" value="false" />
+      <option name="command" value="test --package leger-rs --lib scale::tests::test_scale_compact -- --exact" />
+      <option name="allFeatures" value="true" />
       <option name="emulateTerminal" value="false" />
       <option name="backtrace" value="SHORT" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -169,13 +137,15 @@
         <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
+    <list>
+      <item itemvalue="Cargo.Build - arm - release" />
+      <item itemvalue="Cargo.Run unix" />
+      <item itemvalue="Cargo.Test scale::tests::test_scale_compact" />
+    </list>
     <recent_temporary>
       <list>
         <item itemvalue="Cargo.Run unix" />
-        <item itemvalue="Cargo.Test account::tests::test_alice_account" />
-        <item itemvalue="Cargo.Test account::tests::test_new_account" />
-        <item itemvalue="Cargo.Test extrinsic::tests::test_scale_compact" />
-        <item itemvalue="Cargo.Test extrinsic::tests::test_u128_compact" />
+        <item itemvalue="Cargo.Test scale::tests::test_scale_compact" />
       </list>
     </recent_temporary>
   </component>
@@ -201,7 +171,9 @@
       <workItem from="1607158885606" duration="13706000" />
       <workItem from="1607252704335" duration="22969000" />
       <workItem from="1607347398772" duration="12248000" />
-      <workItem from="1607413163143" duration="12895000" />
+      <workItem from="1607413163143" duration="14542000" />
+      <workItem from="1607455610721" duration="4224000" />
+      <workItem from="1607501013180" duration="26066000" />
     </task>
     <task id="LOCAL-00001" summary="Example of using websocket with Unix TcpStream to fetch block hash.">
       <created>1606736447521</created>
@@ -357,7 +329,56 @@
       <option name="project" value="LOCAL" />
       <updated>1607095000032</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="Signed extrinsics (transfers) are working! Node template is based on Kusama runtime, so is the wallet.&#10;Now using sr25519 instead of ed25519 (will need to benchmark efficiency).&#10;Some changes in the lib API.&#10;The lib cannot be compiled for arm-none-eabi due to a dependency still relying on std.">
+      <created>1607453238586</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1607453238586</updated>
+    </task>
+    <task id="LOCAL-00024" summary="Changed tests (ed25519 to sr25519)">
+      <created>1607453266760</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1607453266760</updated>
+    </task>
+    <task id="LOCAL-00025" summary="+.idea files">
+      <created>1607453272998</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1607453272998</updated>
+    </task>
+    <task id="LOCAL-00026" summary="+.idea files">
+      <created>1607453317779</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1607453317779</updated>
+    </task>
+    <task id="LOCAL-00027" summary="Signing is made outside of library to leverage hardware capabilities whenever possible.&#10;Some refacto, next step is to compile for MCU target.">
+      <created>1607513359140</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1607513359140</updated>
+    </task>
+    <task id="LOCAL-00028" summary="Now compiling for embedded targets.&#10;`hex` crate was using alloc. A PR is pending to prevent the crate from using alloc.">
+      <created>1607529257959</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1607529257959</updated>
+    </task>
+    <task id="LOCAL-00029" summary="Removed public key conversion to base-58. Not useful and was taking 10+kB in the text area.">
+      <created>1607529308358</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1607529308358</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -394,16 +415,21 @@
     <MESSAGE value="Provider to implement traits for the different functions." />
     <MESSAGE value="+idea file" />
     <MESSAGE value="Account Info fetched from Substrate" />
-    <MESSAGE value="+.idea files" />
     <MESSAGE value="Unit test for sign_tx function ok, generated signature doesn't have noise included." />
-    <option name="LAST_COMMIT_MESSAGE" value="Unit test for sign_tx function ok, generated signature doesn't have noise included." />
+    <MESSAGE value="Signed extrinsics (transfers) are working! Node template is based on Kusama runtime, so is the wallet.&#10;Now using sr25519 instead of ed25519 (will need to benchmark efficiency).&#10;Some changes in the lib API.&#10;The lib cannot be compiled for arm-none-eabi due to a dependency still relying on std." />
+    <MESSAGE value="Changed tests (ed25519 to sr25519)" />
+    <MESSAGE value="+.idea files" />
+    <MESSAGE value="Signing is made outside of library to leverage hardware capabilities whenever possible.&#10;Some refacto, next step is to compile for MCU target." />
+    <MESSAGE value="Now compiling for embedded targets.&#10;`hex` crate was using alloc. A PR is pending to prevent the crate from using alloc." />
+    <MESSAGE value="Removed public key conversion to base-58. Not useful and was taking 10+kB in the text area." />
+    <option name="LAST_COMMIT_MESSAGE" value="Removed public key conversion to base-58. Not useful and was taking 10+kB in the text area." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/rpc/mod.rs</url>
-          <line>279</line>
+          <line>281</line>
           <option name="timeStamp" value="30" />
         </line-breakpoint>
       </breakpoints>
