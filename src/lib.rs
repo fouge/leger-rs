@@ -13,7 +13,7 @@ use core::str::from_utf8;
 use crate::scale::Compact;
 
 #[cfg(target_arch = "arm")]
-extern crate panic_eqs;
+extern crate panic_halt;
 
 #[cfg(test)]
 mod tests;

@@ -18,16 +18,12 @@ no-std-net = "0.4.0"
 serde = { version = "1.0.117", default-features = false, features = ["derive"] }
 serde-json-core = "0.1.0"
 heapless = "0.5.6"
-hex = { version = "0.4.2",  default-features = false }
+hex = { version = "0.4.2",  path = "../rust-hex/",  default-features = false } # Using specific branch, waiting for PR (https://github.com/KokaKiwi/rust-hex/pull/42)
 blake2-rfc = { version = "0.2.18", default-features = false }
 bs58 = { version = "0.4.0", default-features = false }
 schnorrkel = { version = "0.9.1", optional = true, default-features = false }
-
-[target.thumbv7em-none-eabihf.dependencies]
-panic_eqs = { git = "ssh://git@gitlab.com/equisense/firmware/panic_eqs.git" }
-
-[target_os.linux.dependencies]
+panic-halt = { version = "0.2.0", optional = true }
 
 [features]
-default = ["rand/small_rng"]
+default = ["rand/small_rng", "panic-halt"]
 std = ["schnorrkel/getrandom", "schnorrkel/u64_backend", "schnorrkel/rand", "rand/std"]
