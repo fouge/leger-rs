@@ -57,7 +57,7 @@ impl From<AccountError> for ProviderError {
 pub struct Provider<'a, S> {
 	rpc: Rpc<'a, S>,
 	addr: &'a str,
-	genesis: [u8; 32],
+	genesis: Option<[u8; 32]>,
 }
 
 impl<'a, S> Provider<'a, S>
@@ -85,7 +85,7 @@ impl<'a, S> Provider<'a, S>
 		Ok(Provider {
 			rpc,
 			addr,
-			genesis: [0_u8; 32],
+			genesis: None,
 		})
 	}
 
@@ -145,8 +145,8 @@ impl<S>  Chain for Provider<'_, S> {
 	}
 
 	fn get_genesis_block_hash(&mut self) -> Result<[u8; 32], Self::Error> {
-		if self.genesis[0] != 0 {
-			return Ok(self.genesis)
+		if let Some(g) = self.genesis {
+			return Ok(g)
 		}
 
 		let genesis = match self.get_block_hash(Some([0_usize; 1])) {
@@ -156,9 +156,9 @@ impl<S>  Chain for Provider<'_, S> {
 			}
 		};
 
-		self.genesis.clone_from_slice(genesis.as_ref());
+		self.genesis.replace(genesis);
 
-		Ok(self.genesis)
+		self.genesis.ok_or(ProviderError::CannotParse)
 	}
 
 	fn get_finalized_head(&mut self) -> Result<&str, Self::Error> {
@@ -193,6 +193,11 @@ impl<S> Calls for Provider<'_, S> {
 	/// This function is trying to be as memory-efficient as possible by using only one buffer
 	/// to get the payload and translating it in hex characters
 	/// The size of this buffer is `MAXIMUM_PARAM_SIZE_BYTES`
+	///
+	/// ## Errors
+	/// * `AccountError::*`: Impossible to fetch source account info
+	/// * `InvalidSize`: Error with buffer size and payload size (buffer isn't large enough?)
+	/// * `RpcError::*`: Error sending the RPC request `author_submitExtrinsic`.
 	fn balance_transfer(&mut self, source_account: &mut Account, dest_account: &[u8; 32], amount: u128)
 		-> Result<&str, Self::Error> {
 		let infos = match source_account.get_info(self) {

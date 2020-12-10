@@ -12,13 +12,13 @@ crate-type = ["rlib", "staticlib"]
 
 [dependencies]
 rand = { version = "0.7.3", default-features = false}
-embedded-nal = { version="0.2.0" }
+embedded-nal = { version = "0.2.0" }
 embedded-websocket = "0.3.2"
 no-std-net = "0.4.0"
 serde = { version = "1.0.117", default-features = false, features = ["derive"] }
 serde-json-core = "0.1.0"
 heapless = "0.5.6"
-hex = { version = "0.4.2",  path = "../rust-hex/",  default-features = false } # Using specific branch, waiting for PR (https://github.com/KokaKiwi/rust-hex/pull/42)
+hex = { version = "0.4.2", git = "https://github.com/Luro02/rust-hex",  default-features = false } # Using specific branch, waiting for PR (https://github.com/KokaKiwi/rust-hex/pull/42)
 blake2-rfc = { version = "0.2.18", default-features = false }
 bs58 = { version = "0.4.0", default-features = false }
 schnorrkel = { version = "0.9.1", optional = true, default-features = false }
