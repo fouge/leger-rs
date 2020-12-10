@@ -14,7 +14,7 @@ pub enum AccountError {
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct AccountInfo {
-	pub(crate) nonce: u32,
+	nonce: u32,
 	ref_count: u32,
 	data: AccountData
 }
@@ -51,7 +51,7 @@ impl<'a> Account<'a> {
 	/// Creating account from secret phrase is not supported yet.
 	pub fn new(signer: &dyn LegerSigner) -> Account {
 		let public = signer.get_public();
-		Account { public, signer: signer, info: None }
+		Account { public, signer, info: None }
 	}
 
 	/// Generate signature for payload and write it back into the payload (64 bytes)
@@ -156,5 +156,16 @@ impl<'a> Account<'a> {
 	pub fn get_balance<S>(&mut self, provider: &mut Provider<S>) -> Result<u128, AccountError> {
 		let info = self.get_info(provider)?;
 		Ok(info.data.free)
+	}
+
+	/// Get account nonce.
+	/// If the provider is not able to fetch data, the last known data is used.
+	///
+	/// ## Errors
+	/// * CannotConvert: there has been an error converting between: slice <-> hex str
+	/// * CannotFetchAccountInfo: error connecting to the provider
+	pub fn get_nonce<S>(&mut self, provider: &mut Provider<S>) -> Result<u32, AccountError> {
+		let info = self.get_info(provider)?;
+		Ok(info.nonce)
 	}
 }

@@ -42,9 +42,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="50193056-bf4f-4000-9603-88ad6df537f8" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/calls/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/calls/transfer.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/unix.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/unix.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/account/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/account/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/calls.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/extrinsic/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/extrinsic/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -96,6 +100,11 @@
     </key>
   </component>
   <component name="RunManager" selected="Cargo.Run unix">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Build - arm - release" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="build --package leger-rs --target thumbv7em-none-eabihf --release" />
@@ -169,7 +178,7 @@
       <workItem from="1607413163143" duration="14542000" />
       <workItem from="1607455610721" duration="4224000" />
       <workItem from="1607501013180" duration="32395000" />
-      <workItem from="1607599300075" duration="4335000" />
+      <workItem from="1607599300075" duration="8672000" />
     </task>
     <task id="LOCAL-00001" summary="Example of using websocket with Unix TcpStream to fetch block hash.">
       <created>1606736447521</created>
@@ -388,7 +397,35 @@
       <option name="project" value="LOCAL" />
       <updated>1607538436380</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="Missing extrinsic module file 🤭">
+      <created>1607603652696</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1607603652696</updated>
+    </task>
+    <task id="LOCAL-00033" summary="Refacto &amp; optimizations">
+      <created>1607603677653</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1607603677653</updated>
+    </task>
+    <task id="LOCAL-00034" summary="+.idea files">
+      <created>1607603686166</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1607603686166</updated>
+    </task>
+    <task id="LOCAL-00035" summary="Mods in README.md">
+      <created>1607608537772</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1607608537772</updated>
+    </task>
+    <option name="localTasksCounter" value="36" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -407,9 +444,6 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="For later, an effective test would be to launch a TCP server to test that part." />
-    <MESSAGE value="+workspace.xml" />
-    <MESSAGE value="Added gitignore" />
     <MESSAGE value="Some doc and better error handling" />
     <MESSAGE value="Ignoring Cargo.lock" />
     <MESSAGE value="Deleted file" />
@@ -430,9 +464,12 @@
     <MESSAGE value="Signing is made outside of library to leverage hardware capabilities whenever possible.&#10;Some refacto, next step is to compile for MCU target." />
     <MESSAGE value="Now compiling for embedded targets.&#10;`hex` crate was using alloc. A PR is pending to prevent the crate from using alloc." />
     <MESSAGE value="Removed public key conversion to base-58. Not useful and was taking 10+kB in the text area." />
-    <MESSAGE value="+.idea files" />
     <MESSAGE value="embedded_nal now using official crate. Socket put into an Option." />
-    <option name="LAST_COMMIT_MESSAGE" value="embedded_nal now using official crate. Socket put into an Option." />
+    <MESSAGE value="Missing extrinsic module file " />
+    <MESSAGE value="Refacto &amp; optimizations" />
+    <MESSAGE value="+.idea files" />
+    <MESSAGE value="Mods in README.md" />
+    <option name="LAST_COMMIT_MESSAGE" value="Mods in README.md" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

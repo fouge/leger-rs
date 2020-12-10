@@ -2,19 +2,13 @@ use crate::account::Account;
 use crate::scale::Compact;
 use crate::{ProviderError, MAXIMUM_PAYLOAD_SIZE_BYTES};
 use crate::chain::Chain;
+use crate::calls::Call;
 
 pub enum ExtrinsicEra {
 	Immortal,
 	Mortal,
 }
 
-pub struct ExtrinsicTransferCall {
-	module_idx: u8,
-	call_idx: u8,
-	is_address: u8,
-	dest_account: [u8; 32],
-	amount: u128 // SCALE encoded
-}
 
 pub struct ExtrinsicPayload<'a> {
 	method: &'a dyn Call,
@@ -27,40 +21,13 @@ pub struct ExtrinsicPayload<'a> {
 	block_hash: [u8; 32],
 }
 
-pub trait Call {
-	fn encode(&self, payload: &mut [u8]) -> usize;
-}
+pub trait ExtrinsicCalls {
+	type Error: core::fmt::Debug;
 
-impl Call for ExtrinsicTransferCall {
-	fn encode(&self, payload: &mut [u8]) -> usize {
-		payload[0] = self.module_idx;
-		payload[1] = self.call_idx;
+	fn submit_extrinsic(&mut self, author: &mut Account, method: &dyn Call) -> Result<&str, Self::Error>;
 
-		// we support only account ID as u8
-		//payload[2] = 0xff;
-		payload[2..2+self.dest_account.len()].copy_from_slice(self.dest_account.as_ref());
-		let mut idx = 2 + self.dest_account.len();
-
-		idx += self.amount.scale_compact(&mut payload[idx..]);
-
-		idx
-	}
-}
-
-impl ExtrinsicTransferCall {
-	pub fn new(dest_account: &[u8; 32], amount: u128) -> ExtrinsicTransferCall {
-		let mut e = ExtrinsicTransferCall {
-			module_idx: 5, // balances
-			call_idx: 0,
-			is_address: 0xFF,
-			dest_account: [0_u8; 32],
-			amount
-		};
-
-		e.dest_account.clone_from_slice(dest_account);
-
-		e
-	}
+	fn balance_transfer(&mut self, author: &mut Account, dest_account: &[u8; 32], amount: u128)
+						-> Result<&str, Self::Error>;
 }
 
 impl<'a> ExtrinsicPayload<'a> {
@@ -176,10 +143,10 @@ impl<'a> ExtrinsicPayload<'a> {
 		signed_tx[idx..idx+packed_call_size].copy_from_slice(temp_packed_call[..packed_call_size].as_ref());
 		idx += packed_call_size;
 
-		if idx < signed_tx.len() {
-			return idx
+		return if idx < signed_tx.len() {
+			idx
 		} else {
-			return 0
+			0
 		}
 	}
 

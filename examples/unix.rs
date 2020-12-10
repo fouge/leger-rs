@@ -12,9 +12,9 @@ use std::time::Duration;
 use leger::{Provider, ProviderError, TcpError};
 use leger::chain::Chain;
 use leger::account::{Account, Key, LegerSigner, PREFIX};
-use leger::calls::Calls;
 use schnorrkel::{SecretKey, Keypair, Signature, signing_context, MiniSecretKey};
 use blake2_rfc::blake2b::Blake2b;
+use leger::extrinsic::ExtrinsicCalls;
 
 pub struct UnixTcpStack {
 }
@@ -135,7 +135,7 @@ impl KeyFormat for Key {
 		body[33..].iter_mut().zip(hash.as_ref().iter())
 			.for_each(|(f, t)| *f = *t);
 
-		let l = bs58::encode(body.as_ref()).into(&mut output[..]).unwrap();
+		bs58::encode(body.as_ref()).into(&mut output[..]).unwrap();
 		let s = from_utf8(output.as_ref()).unwrap();
 		s.to_string()
 	}

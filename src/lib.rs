@@ -4,13 +4,14 @@
 use embedded_nal::{TcpClient};
 use crate::rpc::{Rpc, RpcError};
 use crate::chain::Chain;
-use crate::calls::Calls;
-use crate::extrinsic::{ExtrinsicPayload, ExtrinsicTransferCall};
+use crate::extrinsic::{ExtrinsicPayload, ExtrinsicCalls};
 use crate::account::{Account, AccountError};
 
 use core::convert::TryFrom;
 use core::str::from_utf8;
 use crate::scale::Compact;
+use crate::calls::Call;
+use crate::calls::transfer::ExtrinsicTransferCall;
 
 #[cfg(target_arch = "arm")]
 extern crate panic_halt;
@@ -19,11 +20,11 @@ extern crate panic_halt;
 mod tests;
 
 pub mod account;
-pub mod extrinsic;
-mod rpc;
 pub mod chain;
 pub mod calls;
-mod scale;
+pub mod extrinsic;
+pub mod scale;
+mod rpc;
 
 #[derive(Debug)]
 pub enum ProviderError {
@@ -187,7 +188,7 @@ const MAXIMUM_PAYLOAD_SIZE_BYTES: usize = 504/2;
 const MAXIMUM_PARAM_SIZE_BYTES: usize = MAXIMUM_HEADER_SIZE_BYTES + MAXIMUM_PAYLOAD_SIZE_BYTES_ASCII;
 
 
-impl<S> Calls for Provider<'_, S> {
+impl<S> ExtrinsicCalls for Provider<'_, S> {
 	type Error = ProviderError;
 
 	/// This function is trying to be as memory-efficient as possible by using only one buffer
@@ -198,18 +199,15 @@ impl<S> Calls for Provider<'_, S> {
 	/// * `AccountError::*`: Impossible to fetch source account info
 	/// * `InvalidSize`: Error with buffer size and payload size (buffer isn't large enough?)
 	/// * `RpcError::*`: Error sending the RPC request `author_submitExtrinsic`.
-	fn balance_transfer(&mut self, source_account: &mut Account, dest_account: &[u8; 32], amount: u128)
-		-> Result<&str, Self::Error> {
-		let infos = match source_account.get_info(self) {
-			Ok(i) => { i }
-			Err(e) => {
-				return Err(ProviderError::AccountError(e));
-			}
-		};
+	fn submit_extrinsic(&mut self, author: &mut Account, method: &dyn Call) -> Result<&str, Self::Error> {
+		let nonce;
+		if let Ok(n) = author.get_nonce(self) {
+			nonce = n;
+		} else {
+			nonce = 0;
+		}
 
-		let method = ExtrinsicTransferCall::new(dest_account, amount);
-
-		let extrinsic = ExtrinsicPayload::new(self, &method, infos.nonce);
+		let extrinsic = ExtrinsicPayload::new(self, method, nonce);
 
 		let mut param_buf = [0_u8; MAXIMUM_PARAM_SIZE_BYTES];
 		param_buf[0] = 0x30; // "0"
@@ -220,7 +218,7 @@ impl<S> Calls for Provider<'_, S> {
 			let mut sig_payload:&mut [u8; MAXIMUM_PAYLOAD_SIZE_BYTES] =
 				<&mut [u8; MAXIMUM_PAYLOAD_SIZE_BYTES]>::try_from(&mut param_buf[MAXIMUM_HEADER_SIZE_BYTES..MAXIMUM_HEADER_SIZE_BYTES+MAXIMUM_PAYLOAD_SIZE_BYTES]).unwrap();
 
-			payload_size = extrinsic.signed_tx(source_account, &mut sig_payload);
+			payload_size = extrinsic.signed_tx(author, &mut sig_payload);
 		}
 
 		if payload_size != 0_usize {
@@ -255,5 +253,14 @@ impl<S> Calls for Provider<'_, S> {
 		} else {
 			Err(ProviderError::InvalidSize)
 		}
+	}
+
+	/// This function creates the Call object to transfer balance between author and `dest_account`
+	/// And then submit the extrinsic
+	fn balance_transfer(&mut self, author: &mut Account, dest_account: &[u8; 32], amount: u128)
+						-> Result<&str, Self::Error> {
+		let method = ExtrinsicTransferCall::new(dest_account, amount);
+
+		self.submit_extrinsic(author, &method)
 	}
 }
