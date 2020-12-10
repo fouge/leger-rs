@@ -43,9 +43,9 @@
   <component name="ChangeListManager">
     <list default="true" id="50193056-bf4f-4000-9603-88ad6df537f8" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/unix.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/unix.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/account/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/account/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/rpc/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/rpc/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -132,11 +132,6 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
     <list>
       <item itemvalue="Cargo.Build - arm - release" />
       <item itemvalue="Cargo.Run unix" />
@@ -173,7 +168,8 @@
       <workItem from="1607347398772" duration="12248000" />
       <workItem from="1607413163143" duration="14542000" />
       <workItem from="1607455610721" duration="4224000" />
-      <workItem from="1607501013180" duration="26066000" />
+      <workItem from="1607501013180" duration="32395000" />
+      <workItem from="1607599300075" duration="4335000" />
     </task>
     <task id="LOCAL-00001" summary="Example of using websocket with Unix TcpStream to fetch block hash.">
       <created>1606736447521</created>
@@ -378,7 +374,21 @@
       <option name="project" value="LOCAL" />
       <updated>1607529308358</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="+.idea files">
+      <created>1607531669317</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1607531669317</updated>
+    </task>
+    <task id="LOCAL-00031" summary="embedded_nal now using official crate. Socket put into an Option.">
+      <created>1607538436380</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1607538436380</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -397,7 +407,6 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Example of using websocket with Unix TcpStream to fetch block hash." />
     <MESSAGE value="For later, an effective test would be to launch a TCP server to test that part." />
     <MESSAGE value="+workspace.xml" />
     <MESSAGE value="Added gitignore" />
@@ -418,18 +427,19 @@
     <MESSAGE value="Unit test for sign_tx function ok, generated signature doesn't have noise included." />
     <MESSAGE value="Signed extrinsics (transfers) are working! Node template is based on Kusama runtime, so is the wallet.&#10;Now using sr25519 instead of ed25519 (will need to benchmark efficiency).&#10;Some changes in the lib API.&#10;The lib cannot be compiled for arm-none-eabi due to a dependency still relying on std." />
     <MESSAGE value="Changed tests (ed25519 to sr25519)" />
-    <MESSAGE value="+.idea files" />
     <MESSAGE value="Signing is made outside of library to leverage hardware capabilities whenever possible.&#10;Some refacto, next step is to compile for MCU target." />
     <MESSAGE value="Now compiling for embedded targets.&#10;`hex` crate was using alloc. A PR is pending to prevent the crate from using alloc." />
     <MESSAGE value="Removed public key conversion to base-58. Not useful and was taking 10+kB in the text area." />
-    <option name="LAST_COMMIT_MESSAGE" value="Removed public key conversion to base-58. Not useful and was taking 10+kB in the text area." />
+    <MESSAGE value="+.idea files" />
+    <MESSAGE value="embedded_nal now using official crate. Socket put into an Option." />
+    <option name="LAST_COMMIT_MESSAGE" value="embedded_nal now using official crate. Socket put into an Option." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/rpc/mod.rs</url>
-          <line>281</line>
+          <line>280</line>
           <option name="timeStamp" value="30" />
         </line-breakpoint>
       </breakpoints>
