@@ -6,31 +6,43 @@ It is written in Rust with a focus on [Substrate](https://www.substrate.io/) cha
 
 ## ⚠ Under development
 
-At the moment, the wallet is made to work with Kusama runtimes (or [node template](https://github.com/substrate-developer-hub/substrate-node-template/)). It should not be used in production.
+At the moment, the wallet is made to work with Kusama runtimes (or [Substrate node template](https://github.com/substrate-developer-hub/substrate-node-template/)). It should not be used in production.
 
 The library currently provides:
 
-- Websocket handshake
-- RPC calls:
-    - block genesis
-    - system version
-    - chain info
-    - runtime info
-    - balance transfers (extrinsic)
+- Websocket layer
+- RPC calls to:
+    - get block genesis
+    - get system version
+    - get chain info
+    - get runtime info
+    - send money (through extrinsic)
+  
+More features are coming, please check the [Issues](https://github.com/fouge/leger-rs/issues).
 
-Not supported (yet):
+🙏 Pull Requests are welcome!
 
-- Secured TLS connection for HTTPS
-- DNS client
+## 🏗 Implementation
 
-## Implementation
+### TCP stack
 
 In order to use `leger-rs`, you need to make sure to provide a TCP Client implementation that implements the 
-[`TcpClientStack`](https://github.com/rust-embedded-community/embedded-nal/tree/v0.2.0) Trait from the 
+[`TcpClient`](https://github.com/rust-embedded-community/embedded-nal/tree/v0.2.0) trait from the 
 [`embedded_nal`](https://github.com/rust-embedded-community/embedded-nal) library.
+
+### Key management and signing
+
+Key management must be done safely and signatures should be computed efficiently. 
+
+It is advised to isolate these jobs in a secure element or any secure context. It is left to the user to implement the 
+signing-related functions using the `LegerSigner` trait.
+
+Read the Unix example for more info (see below).
+
+### Unix example
 
 See [examples](examples) for an implementation on a Unix-based OS using `std::net::TcpStream`.
 
-> ⚠ Implementing TcpClientStack with TcpStream is far from ideal. Make sure you have a node running and accessible at 
+> ⚠ Implementing TcpClient with TcpStream is far from ideal. Make sure you have a node running and accessible at 
 `127.0.0.1:9944` (or make sure to change the address in [the example](examples/unix.rs)) if you want the wallet 
 to create a socket.
