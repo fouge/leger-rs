@@ -20,7 +20,7 @@ pub struct UnixTcpStack {
 }
 
 impl TcpClient for UnixTcpStack {
-	type TcpSocket = TcpStream;
+	type TcpSocket = Option<TcpStream>;
 	type Error = TcpError;
 
 	// We want the socket to be created but we don't want any connection
@@ -28,33 +28,33 @@ impl TcpClient for UnixTcpStack {
 	// to a default address
 	// TODO, there should be a better way to handle this!
 	fn socket(&self) -> Result<Self::TcpSocket, Self::Error> {
-		let addrs = [ std::net::SocketAddr::from(([127, 0, 0, 1], 9944)) ];
-
-		let socket = TcpStream::connect(&addrs[..]);
-		if let Ok(s) = socket {
-			Ok(s)
-		} else {
-			Err(TcpError::CannotConnect)
-		}
+		Ok(None)
 	}
 
 	fn connect(&self, socket: &mut Self::TcpSocket, remote: SocketAddr) -> nb::Result<(), Self::Error> {
 		let addrs = [ std::net::SocketAddr::from_str(remote.to_string().as_str()).unwrap() ];
 
-		let mut socket_cpy = TcpStream::connect(&addrs[..]).unwrap();
-		std::mem::swap(socket, &mut socket_cpy);
+		let mut new_sock = TcpStream::connect(&addrs[..]).ok();
 
-		socket.set_read_timeout(Some(Duration::new(2, 0))).expect("set_read_timeout call failed");
-		Ok(())
+		if new_sock.is_some() {
+			socket.replace(new_sock.unwrap());
+			socket.as_ref().unwrap().set_read_timeout(Some(Duration::new(2, 0)));
+			Ok(())
+		} else {
+			Err(nb::Error::Other(TcpError::CannotConnect))
+		}
 	}
 
-	fn is_connected(&self, _socket: &Self::TcpSocket) -> Result<bool, Self::Error> {
-		// It's not possible to use a disconnected TcpStream as we need to connect to create it
-		Ok(true)
+	fn is_connected(&self, socket: &Self::TcpSocket) -> Result<bool, Self::Error> {
+		Ok(socket.is_some())
 	}
 
 	fn send(&self, socket: &mut Self::TcpSocket, buffer: &[u8]) -> nb::Result<usize, Self::Error> {
-		if let Ok(written) = socket.write(buffer) {
+		if socket.is_none() {
+			return Err(nb::Error::Other(TcpError::CannotConnect))
+		}
+
+		if let Ok(written) = socket.as_ref().unwrap().write(buffer) {
 			Ok(written)
 		} else {
 			Err(nb::Error::WouldBlock)
@@ -62,7 +62,11 @@ impl TcpClient for UnixTcpStack {
 	}
 
 	fn receive(&self, socket: &mut Self::TcpSocket, buffer: &mut [u8]) -> nb::Result<usize, Self::Error> {
-		if let Ok(read) = socket.read(buffer) {
+		if socket.is_none() {
+			return Err(nb::Error::Other(TcpError::CannotConnect))
+		}
+
+		if let Ok(read) = socket.as_ref().unwrap().read(buffer) {
 			Ok(read)
 		} else {
 			Err(nb::Error::WouldBlock)
@@ -70,9 +74,11 @@ impl TcpClient for UnixTcpStack {
 	}
 
 	fn close(&self, socket: Self::TcpSocket) -> Result<(), Self::Error> {
-		// It is advised to drop the socket reference to make sure it is closed
-		// [The connection will be closed when the value is dropped](https://doc.rust-lang.org/beta/std/net/struct.TcpStream.html)
-		if let Ok(_) = socket.shutdown(Shutdown::Both) {
+		if socket.is_none() {
+			return Ok(())
+		}
+
+		if let Ok(_) = socket.unwrap().shutdown(Shutdown::Both) {
 			Ok(())
 		} else {
 			Err(TcpError::CannotClose)
@@ -151,7 +157,7 @@ fn main() -> Result<(), ProviderError> {
 		&mut seed as &mut [u8])
 		.expect("Cannot decode hex string");
 	let tcp = UnixTcpStack{	};
-	let mut pp: Provider<TcpStream> = Provider::new(&tcp, "127.0.0.1:9944")?;
+	let mut pp: Provider<Option<TcpStream>> = Provider::new(&tcp, "127.0.0.1:9944")?;
 
 	let signer = LocalSigner::new(seed);
 	let mut account = Account::new(&signer);

@@ -41,8 +41,4 @@ Read the Unix example for more info (see below).
 
 ### Unix example
 
-See [examples](examples) for an implementation on a Unix-based OS using `std::net::TcpStream`.
-
-> ⚠ Implementing TcpClient with TcpStream is far from ideal. Make sure you have a node running and accessible at 
-`127.0.0.1:9944` (or make sure to change the address in [the example](examples/unix.rs)) if you want the wallet 
-to create a socket.
+See [the Unix example](examples/unix.rs) for an implementation on a Unix-based OS using `std::net::TcpStream`.
