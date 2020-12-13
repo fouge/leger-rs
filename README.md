@@ -2,7 +2,7 @@
 
 Léger is a `no-std` library exposing a crypto-wallet for embedded targets.
 
-It is written in Rust with a focus on [Substrate](https://www.substrate.io/) chains.
+It is written in Rust with a focus on [Substrate](https://www.substrate.io/) chains. The goal will be to add other providers as well.
 
 ## ⚠ Under development
 
@@ -11,12 +11,13 @@ At the moment, the wallet is made to work with Kusama runtimes (or [Substrate no
 The library currently provides:
 
 - Websocket layer
-- RPC calls to:
+- JSON-RPC calls to:
     - get block genesis
     - get system version
     - get chain info
     - get runtime info
     - send money (through extrinsic)
+- Gives the developer the ability to add extrinsic calls by implementing the `Call` trait.
   
 More features are coming, please check the [Issues](https://github.com/fouge/leger-rs/issues).
 
