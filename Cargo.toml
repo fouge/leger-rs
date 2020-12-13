@@ -3,6 +3,11 @@ name = "leger-rs"
 version = "0.1.0"
 authors = ["Cyril Fougeray <cyril.fougeray@gmail.com>"]
 edition = "2018"
+license = "MIT"
+description = "The leger library provides crypto-wallet capabilities for microcontroller-based devices."
+readme = "README.md"
+repository = "https://github.com/fouge/leger-rs"
+keywords = ["no-std", "wallet", "embedded", "blockchain", "substrate"]
 
 [lib]
 name = "leger"
