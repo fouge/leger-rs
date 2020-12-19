@@ -8,6 +8,7 @@ description = "The leger library provides crypto-wallet capabilities for microco
 readme = "README.md"
 repository = "https://github.com/fouge/leger-rs"
 keywords = ["no-std", "wallet", "embedded", "blockchain", "substrate"]
+exclude = [ ".idea/*" ]
 
 [lib]
 name = "leger"
