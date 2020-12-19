@@ -207,7 +207,7 @@ impl<S> ExtrinsicCalls for Provider<'_, S> {
 			nonce = 0;
 		}
 
-		let extrinsic = ExtrinsicPayload::new(self, method, nonce);
+		let extrinsic = ExtrinsicPayload::new(self, method, nonce)?;
 
 		let mut param_buf = [0_u8; MAXIMUM_PARAM_SIZE_BYTES];
 		param_buf[0] = 0x30; // "0"

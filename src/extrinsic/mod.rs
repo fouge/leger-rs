@@ -31,11 +31,17 @@ pub trait ExtrinsicCalls {
 }
 
 impl<'a> ExtrinsicPayload<'a> {
-	pub fn new(chain: &mut dyn Chain<Error=ProviderError>, call: &'a dyn Call, nonce: u32) -> ExtrinsicPayload<'a> {
-		let genesis = chain.get_genesis_block_hash().expect("Cannot get genesis");
-		let block_hash = chain.get_block_hash(None).expect("Cannot get block hash");
+	/// Creates a new `ExtrinsicPayload` structure to be serialized.
+	///
+	/// ## Errors
+	/// Initialization of the structure needs access to the blockchain to get genesis and block hash,
+	/// if those have not been fetched before.
+	/// Thus, creating an extrinsic can return an error; see `ProviderError`
+	pub fn new(chain: &mut dyn Chain<Error=ProviderError>, call: &'a dyn Call, nonce: u32) -> Result<ExtrinsicPayload<'a>, ProviderError> {
+		let genesis = chain.get_genesis_block_hash()?;
+		let block_hash = chain.get_block_hash(None)?;
 		//let transaction_version =
-		ExtrinsicPayload {
+		Ok(ExtrinsicPayload {
 			method: call,
 			era: [0x00], // immortal TODO implement Mortal era
 			nonce,
@@ -44,7 +50,7 @@ impl<'a> ExtrinsicPayload<'a> {
 			transaction_version: 1,  // TODO get from `runtime_version`
 			genesis,
 			block_hash
-		}
+		})
 	}
 
 	/// Generates the signature payload used to compute a signature

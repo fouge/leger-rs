@@ -162,6 +162,8 @@ fn main() -> Result<(), ProviderError> {
 	let signer = LocalSigner::new(seed);
 	let mut account = Account::new(&signer);
 
+	println!("👛 Created wallet (TCP stack, provider, signer and account are ready)");
+
 	let name = pp.system_name()?;
 	println!("🧪 Name: {}", name);
 
@@ -207,8 +209,8 @@ fn main() -> Result<(), ProviderError> {
 	let amount_to_send = 2921503981796281;
 	println!("🤑 Sending {} units to Bob: 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty", amount_to_send);
 
-	let resp = pp.balance_transfer(&mut account, &dest_account, amount_to_send);
-	println!("🔗 Finalized block hash: {:?}", resp.unwrap());
+	let resp = pp.balance_transfer(&mut account, &dest_account, amount_to_send)?;
+	println!("🔗 Finalized block hash: {:?}", resp);
 
 	Ok(())
 }
